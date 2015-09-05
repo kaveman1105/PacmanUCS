@@ -21,6 +21,8 @@ import pacsim.PacmanCell;
 public class PacmanUCS implements PacAction {
 
 	private Point target;
+	private ArrayList<node> fringe;
+	private ArrayList<String> path;
 
 	public PacmanUCS(String fname) {
 		PacSim sim = new PacSim(fname);
@@ -35,31 +37,39 @@ public class PacmanUCS implements PacAction {
 	@Override
 	public void init() {
 		target = null;
+		fringe = new ArrayList<node>();
+		path = null;
 	}
 
 	@Override
 	public PacFace action(Object state) {
+		PacCell[][] grid = (PacCell[][]) state;
+		PacFace newFace = null;
+		PacmanCell pc = PacUtils.findPacman(grid);
 
-		// if(something)
-		findPath(state);
-		// else
-		// followPath();
+		PacCell[][] test = grid.clone();
+		test[1][1] = new PacCell(1, 1);
+		if (path == null) {
+//			findPath(grid.clone());
+			// need to return the first direction heres
+		}
 
 		return PacFace.N;
 	}
 
 	public void findPath(Object state) {
-		PacCell[][] grid = (PacCell[][]) state;
-		PacmanCell pc = PacUtils.findPacman(grid);
 
-		if (grid[1][1] instanceof FoodCell) {
-			System.out.println("Its food");
-			grid[1][1] = new PacCell(1, 1);
-		} else
-			System.out.println("Its something else");
+		// add initial starting point to fringe
+		fringe.add(new node(state));
+		fringe.get(0).grid[1][1] = new PacCell(1, 1);
 
 	}
 
+	/**
+	 * this class will be on the fringe. it keeps track of the steps taken on
+	 * each possible path. It has its own copy of the the grid to edit as needed
+	 * 
+	 */
 	class node {
 		int steps;
 		PacCell[][] grid;
