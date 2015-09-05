@@ -8,6 +8,7 @@
  */
 import java.awt.Point;
 import java.io.File;
+import java.util.*;
 import javax.swing.JFileChooser;
 import pacsim.FoodCell;
 import pacsim.PacAction;
@@ -38,8 +39,36 @@ public class PacmanUCS implements PacAction {
 
 	@Override
 	public PacFace action(Object state) {
-		System.out.println("something happened");
-		System.out.println(state);
-		return PacFace.E;
+
+		// if(something)
+		findPath(state);
+		// else
+		// followPath();
+
+		return PacFace.N;
+	}
+
+	public void findPath(Object state) {
+		PacCell[][] grid = (PacCell[][]) state;
+		PacmanCell pc = PacUtils.findPacman(grid);
+
+		if (grid[1][1] instanceof FoodCell) {
+			System.out.println("Its food");
+			grid[1][1] = new PacCell(1, 1);
+		} else
+			System.out.println("Its something else");
+
+	}
+
+	class node {
+		int steps;
+		PacCell[][] grid;
+		ArrayList<String> history;
+
+		public node(Object state) {
+			this.grid = (PacCell[][]) state;
+			this.steps = 0;
+			this.history = new ArrayList<String>();
+		}
 	}
 }
