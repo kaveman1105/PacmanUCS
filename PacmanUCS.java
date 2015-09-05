@@ -48,28 +48,35 @@ public class PacmanUCS implements PacAction {
 
 		int i = 0, j = 0;
 		PacCell pc;
-	try{
-		for(;;i++){
-			pc = grid[i][j];
-		}
-		
-	}catch(Exception e){
-		i--;
-		System.out.println("i = " + i);
-	}
-	
-	
-	try{
-		for(;;j++){
-			pc = grid[i][j];
-		}
-		
-	}catch(Exception e){
-		j--;
-		System.out.println("j = " + j);
-	}
+		try {
+			for (;; i++) {
+				pc = grid[i][0];
+			}
 
-		System.out.println("the length of i is " + i);
+		} catch (Exception e) {
+			i--;
+			System.out.println("i = " + i);
+		}
+
+		try {
+			for (;; j++) {
+				pc = grid[0][j];
+			}
+
+		} catch (Exception e) {
+			j--;
+			System.out.println("j = " + j);
+		}
+
+		int num_pellets = 0;
+
+//		for (int k = 0; k < i; k++)
+//			for (int m = 0; m < j; m++) {
+//				pc = grid[k][m];
+//				if (PacUtils.neighbor(PacFace.W, pc, grid) instanceof FoodCell)
+//					num_pellets++;
+//			}
+		System.out.println("the board has " + num_pellets + " pellets");
 
 		if (path == null) {
 			// findPath(grid.clone());
