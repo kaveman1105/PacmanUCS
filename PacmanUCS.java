@@ -11,6 +11,7 @@ import java.io.File;
 import java.util.*;
 import javax.swing.JFileChooser;
 import pacsim.FoodCell;
+import pacsim.WallCell;
 import pacsim.PacAction;
 import pacsim.PacCell;
 import pacsim.PacFace;
@@ -44,13 +45,34 @@ public class PacmanUCS implements PacAction {
 	@Override
 	public PacFace action(Object state) {
 		PacCell[][] grid = (PacCell[][]) state;
-		PacFace newFace = null;
-		PacmanCell pc = PacUtils.findPacman(grid);
 
-		PacCell[][] test = grid.clone();
-		test[1][1] = new PacCell(1, 1);
+		int i = 0, j = 0;
+		PacCell pc;
+	try{
+		for(;;i++){
+			pc = grid[i][j];
+		}
+		
+	}catch(Exception e){
+		i--;
+		System.out.println("i = " + i);
+	}
+	
+	
+	try{
+		for(;;j++){
+			pc = grid[i][j];
+		}
+		
+	}catch(Exception e){
+		j--;
+		System.out.println("j = " + j);
+	}
+
+		System.out.println("the length of i is " + i);
+
 		if (path == null) {
-//			findPath(grid.clone());
+			// findPath(grid.clone());
 			// need to return the first direction heres
 		}
 
