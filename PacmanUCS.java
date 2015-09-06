@@ -82,17 +82,22 @@ public class PacmanUCS implements PacAction {
 				}
 			if (debug)
 				System.out.println("the board has " + num_pellets + " pellets");
-			// findPath(grid.clone());
+			findPath(grid);
 			// need to return the first direction heres
 		}
 
 		return PacFace.N;
 	}
 
-	public void findPath(Object state) {
+	public void findPath(PacCell[][] grid) {
 
-		// add initial starting point to fringe
-		
+		// get starting position of pacman
+		PacmanCell pacman = PacUtils.findPacman(grid);
+
+		// initialize fringe with starting point
+		ArrayList<node> fringe = new ArrayList<node>();
+		fringe.add(new node(pacman.getX(), pacman.getY(), -1));
+		fringe.get(0).info();
 
 	}
 
@@ -108,12 +113,17 @@ public class PacmanUCS implements PacAction {
 		int y;
 		String history;
 
-		public node(int x, int y) {
+		public node(int x, int y, int steps) {
 			this.eaten = 0;
-			this.steps = 0;
+			this.steps = steps + 1;
 			this.x = x;
 			this.y = y;
 			this.history = "";
+		}
+
+		public void info() {
+			System.out.println("x:" + this.x + " y:" + this.y + " steps:"
+					+ this.steps + " eaten:" + this.eaten);
 		}
 	}
 }
