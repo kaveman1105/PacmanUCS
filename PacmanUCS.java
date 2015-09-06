@@ -70,12 +70,11 @@ public class PacmanUCS implements PacAction {
 
 		int num_pellets = 0;
 
-//		for (int k = 0; k < i; k++)
-//			for (int m = 0; m < j; m++) {
-//				pc = grid[k][m];
-//				if (PacUtils.neighbor(PacFace.W, pc, grid) instanceof FoodCell)
-//					num_pellets++;
-//			}
+		for (int k = 0; k < i; k++)
+			for (int m = 0; m < j; m++) {
+				if (grid[k][m] instanceof FoodCell)
+					num_pellets++;
+			}
 		System.out.println("the board has " + num_pellets + " pellets");
 
 		if (path == null) {
