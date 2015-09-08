@@ -46,7 +46,7 @@ public class PacmanUCS implements PacAction {
 		debug = true;
 		pathfound = false;
 		numPellets = 0;
-		
+
 	}
 
 	@Override
@@ -87,8 +87,9 @@ public class PacmanUCS implements PacAction {
 				System.out.println("the board has " + numPellets + " pellets");
 			findPath(grid, i, j);
 			// need to return the first direction heres
-		}else{
-			//step through path here
+			path = "";
+		} else {
+			// step through path here
 		}
 
 		return PacFace.N;
@@ -126,8 +127,10 @@ public class PacmanUCS implements PacAction {
 			if (!(grid[left.x][left.y] instanceof WallCell)) {
 				if (grid[left.x][left.y] instanceof FoodCell) {
 					left.eaten++;
-					if (left.eaten == numPellets)
+					if (left.eaten == numPellets) {
 						pathfound = true;
+						System.out.println("path found is: " + left.history);
+					}
 				}
 				left.info();
 				fringe.add(left);
@@ -142,8 +145,10 @@ public class PacmanUCS implements PacAction {
 			if (!(grid[right.x][right.y] instanceof WallCell)) {
 				if (grid[right.x][right.y] instanceof FoodCell) {
 					right.eaten++;
-					if (right.eaten == numPellets)
+					if (right.eaten == numPellets) {
 						pathfound = true;
+						System.out.println("path found is: " + right.history);
+					}
 				}
 				right.info();
 				fringe.add(right);
@@ -158,8 +163,10 @@ public class PacmanUCS implements PacAction {
 			if (!(grid[up.x][up.y] instanceof WallCell)) {
 				if (grid[up.x][up.y] instanceof FoodCell) {
 					up.eaten++;
-					if (up.eaten == numPellets)
+					if (up.eaten == numPellets) {
 						pathfound = true;
+						System.out.println("path found is: " + up.history);
+					}
 
 				}
 				up.info();
@@ -175,8 +182,10 @@ public class PacmanUCS implements PacAction {
 			if (!(grid[down.x][down.y] instanceof WallCell)) {
 				if (grid[down.x][down.y] instanceof FoodCell) {
 					down.eaten++;
-					if (down.eaten == numPellets)
+					if (down.eaten == numPellets) {
 						pathfound = true;
+						System.out.println("path found is: " + down.history);
+					}
 
 				}
 				down.info();
@@ -184,7 +193,7 @@ public class PacmanUCS implements PacAction {
 				fringe.add(down);
 			}
 		}
-	
+
 		return fringe;
 	}
 
