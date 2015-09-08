@@ -97,8 +97,74 @@ public class PacmanUCS implements PacAction {
 		// initialize fringe with starting point
 		ArrayList<node> fringe = new ArrayList<node>();
 		fringe.add(new node(pacman.getX(), pacman.getY(), -1));
-		fringe.get(0).info();
+		
+		boolean pathfound = false;
+		
+		while(!pathfound){
+			System.out.println("fringe size before expand:" + fringe.size());
+			fringe = expand(fringe, grid);
+			System.out.println("fringe size after expand:" + fringe.size());
+			pathfound = true;
+		}
 
+	}
+	
+	public ArrayList<node> expand(ArrayList<node> fringe, PacCell[][] grid){
+		
+		//remove first node and repalce with 1 from a step in each direction
+		node n = fringe.remove(0);
+	
+		//step left
+		node left = new node(n.x-1, n.y, n.steps);
+		left.addToHistory("W");
+		if(!(grid[left.x][left.y] instanceof WallCell)){
+			if(grid[left.x][left.y] instanceof FoodCell){
+				left.eaten++;
+				
+			}
+		}
+			
+		
+		//step right
+		node right = new node(n.x+1, n.y, n.steps);
+		right.addToHistory("E");
+		if(!(grid[right.x][right.y] instanceof WallCell)){
+			if(grid[right.x][right.y] instanceof FoodCell){
+				right.eaten++;
+				
+			}
+		}
+		
+		//step up
+		node up = new node(n.x, n.y-1, n.steps);
+		up.addToHistory("N");
+		if(!(grid[up.x][up.y] instanceof WallCell)){
+			if(grid[up.x][up.y] instanceof FoodCell){
+				up.eaten++;
+				
+			}
+		}
+		
+		//step down
+		node down = new node(n.x, n.y+1, n.steps);
+		down.addToHistory("S");
+		if(!(grid[down.x][down.y] instanceof WallCell)){
+			if(grid[down.x][down.y] instanceof FoodCell){
+				down.eaten++;
+				
+			}
+		}
+		
+		left.info();
+		right.info();
+		up.info();
+		down.info();
+		fringe.add(left);
+		fringe.add(up);
+		fringe.add(right);
+		fringe.add(down);
+		
+		return fringe;
 	}
 
 	/**
@@ -119,6 +185,10 @@ public class PacmanUCS implements PacAction {
 			this.x = x;
 			this.y = y;
 			this.history = "";
+		}
+
+		public void addToHistory(String s) {
+			this.history += s;
 		}
 
 		public void info() {
