@@ -23,10 +23,10 @@ public class PacmanUCS implements PacAction {
 
 	private Point target;
 	private ArrayList<node> fringe;
-	private ArrayList<String> path;
 	private boolean pathfound;
 	private int numPellets;
 	public boolean debug;
+	private String path;
 
 	public PacmanUCS(String fname) {
 		PacSim sim = new PacSim(fname);
@@ -46,6 +46,7 @@ public class PacmanUCS implements PacAction {
 		debug = true;
 		pathfound = false;
 		numPellets = 0;
+		
 	}
 
 	@Override
@@ -84,14 +85,16 @@ public class PacmanUCS implements PacAction {
 				}
 			if (debug)
 				System.out.println("the board has " + numPellets + " pellets");
-			findPath(grid);
+			findPath(grid, i, j);
 			// need to return the first direction heres
+		}else{
+			//step through path here
 		}
 
 		return PacFace.N;
 	}
 
-	public void findPath(PacCell[][] grid) {
+	public void findPath(PacCell[][] grid, int lengthX, int lengthY) {
 
 		// get starting position of pacman
 		PacmanCell pacman = PacUtils.findPacman(grid);
@@ -102,73 +105,86 @@ public class PacmanUCS implements PacAction {
 
 		while (!pathfound) {
 			System.out.println("fringe size before expand:" + fringe.size());
-			fringe = expand(fringe, grid);
+			fringe = expand(fringe, grid, lengthX, lengthY);
 			System.out.println("fringe size after expand:" + fringe.size());
-			pathfound = true;
+			// pathfound = true;
 		}
 
 	}
 
-	public ArrayList<node> expand(ArrayList<node> fringe, PacCell[][] grid) {
+	public ArrayList<node> expand(ArrayList<node> fringe, PacCell[][] grid,
+			int lengthX, int lengthY) {
 
 		// remove first node and repalce with 1 from a step in each direction
 		node n = fringe.remove(0);
 
 		// step left
-		node left = new node(n.x - 1, n.y, n.steps);
-		left.addToHistory("W");
-		if (!(grid[left.x][left.y] instanceof WallCell)) {
-			if (grid[left.x][left.y] instanceof FoodCell) {
-				left.eaten++;
-				if(left.eaten == numPellets)
-					pathfound = true;
+		if (n.x - 1 >= 0) { // check if step is within bounds
+			node left = new node(n.x - 1, n.y, n.steps);
+			left.addToHistory(n.history + "W");
+			left.eaten = n.eaten;
+			if (!(grid[left.x][left.y] instanceof WallCell)) {
+				if (grid[left.x][left.y] instanceof FoodCell) {
+					left.eaten++;
+					if (left.eaten == numPellets)
+						pathfound = true;
+				}
+				left.info();
+				fringe.add(left);
 			}
-			fringe.add(left);
 		}
 
 		// step right
-		node right = new node(n.x + 1, n.y, n.steps);
-		right.addToHistory("E");
-		if (!(grid[right.x][right.y] instanceof WallCell)) {
-			if (grid[right.x][right.y] instanceof FoodCell) {
-				right.eaten++;
-
+		if (n.x + 1 <= lengthX) {// check if step is within bounds
+			node right = new node(n.x + 1, n.y, n.steps);
+			right.addToHistory(n.history + "E");
+			right.eaten = n.eaten;
+			if (!(grid[right.x][right.y] instanceof WallCell)) {
+				if (grid[right.x][right.y] instanceof FoodCell) {
+					right.eaten++;
+					if (right.eaten == numPellets)
+						pathfound = true;
+				}
+				right.info();
+				fringe.add(right);
 			}
-			fringe.add(right);
 		}
 
 		// step up
-		node up = new node(n.x, n.y - 1, n.steps);
-		up.addToHistory("N");
-		if (!(grid[up.x][up.y] instanceof WallCell)) {
-			if (grid[up.x][up.y] instanceof FoodCell) {
-				up.eaten++;
+		if (n.y - 1 >= 0) {// check if step is within bounds
+			node up = new node(n.x, n.y - 1, n.steps);
+			up.addToHistory(n.history + "N");
+			up.eaten = n.eaten;
+			if (!(grid[up.x][up.y] instanceof WallCell)) {
+				if (grid[up.x][up.y] instanceof FoodCell) {
+					up.eaten++;
+					if (up.eaten == numPellets)
+						pathfound = true;
 
+				}
+				up.info();
+				fringe.add(up);
 			}
-			fringe.add(up);
 		}
 
 		// step down
-		node down = new node(n.x, n.y + 1, n.steps);
-		down.addToHistory("S");
-		if (!(grid[down.x][down.y] instanceof WallCell)) { // if location is a
-															// wall skip
-			if (grid[down.x][down.y] instanceof FoodCell) {// if its food
-															// increment and
-															// check if all have
-															// been found
-				down.eaten++;
+		if (n.y + 1 <= lengthY) {// check if step is within bounds
+			node down = new node(n.x, n.y + 1, n.steps);
+			down.addToHistory(n.history + "S");
+			down.eaten = n.eaten;
+			if (!(grid[down.x][down.y] instanceof WallCell)) {
+				if (grid[down.x][down.y] instanceof FoodCell) {
+					down.eaten++;
+					if (down.eaten == numPellets)
+						pathfound = true;
 
+				}
+				down.info();
+				// add to end of fringe
+				fringe.add(down);
 			}
-			//add to end of fringe
-			fringe.add(down);
 		}
-
-		left.info();
-		right.info();
-		up.info();
-		down.info();
-
+	
 		return fringe;
 	}
 
