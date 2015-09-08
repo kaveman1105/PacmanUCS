@@ -108,9 +108,27 @@ public class PacmanUCS implements PacAction {
 			System.out.println("fringe size before expand:" + fringe.size());
 			fringe = expand(fringe, grid, lengthX, lengthY);
 			System.out.println("fringe size after expand:" + fringe.size());
+			removePointlesspaths(fringe);
+			System.out.println("fringe size after removing pointless paths:"
+					+ fringe.size());
 			// pathfound = true;
 		}
 
+	}
+
+	public void removePointlesspaths(ArrayList<node> fringe) {
+		if (fringe.isEmpty())
+			return;
+
+		for (int i = 0; i < fringe.size(); i++) {
+			if (fringe.get(i).history.contains("WEWE")
+					|| fringe.get(i).history.contains("EWEW")
+					|| fringe.get(i).history.contains("NSNS")
+					|| fringe.get(i).history.contains("SNSN")) {
+				fringe.remove(i);
+				i--;
+			}
+		}
 	}
 
 	public ArrayList<node> expand(ArrayList<node> fringe, PacCell[][] grid,
@@ -122,11 +140,15 @@ public class PacmanUCS implements PacAction {
 		// step left
 		if (n.x - 1 >= 0) { // check if step is within bounds
 			node left = new node(n.x - 1, n.y, n.steps);
-			left.addToHistory(n.history + "W");
-			left.eaten = n.eaten;
+			left.addToHistory(n.history + "W");// update history
+			left.eaten = n.eaten; // copy over history
+			left.food = n.food; // copy over eaten pellets
 			if (!(grid[left.x][left.y] instanceof WallCell)) {
 				if (grid[left.x][left.y] instanceof FoodCell) {
-					left.eaten++;
+					if (foundNewPellet(left)) {
+						left.food.add(new pellet(left.x, left.y));
+						left.eaten++;
+					}
 					if (left.eaten == numPellets) {
 						pathfound = true;
 						System.out.println("path found is: " + left.history);
@@ -142,9 +164,13 @@ public class PacmanUCS implements PacAction {
 			node right = new node(n.x + 1, n.y, n.steps);
 			right.addToHistory(n.history + "E");
 			right.eaten = n.eaten;
+			right.food = n.food;
 			if (!(grid[right.x][right.y] instanceof WallCell)) {
 				if (grid[right.x][right.y] instanceof FoodCell) {
-					right.eaten++;
+					if (foundNewPellet(right)) {
+						right.food.add(new pellet(right.x, right.y));
+						right.eaten++;
+					}
 					if (right.eaten == numPellets) {
 						pathfound = true;
 						System.out.println("path found is: " + right.history);
@@ -160,9 +186,13 @@ public class PacmanUCS implements PacAction {
 			node up = new node(n.x, n.y - 1, n.steps);
 			up.addToHistory(n.history + "N");
 			up.eaten = n.eaten;
+			up.food = n.food;
 			if (!(grid[up.x][up.y] instanceof WallCell)) {
 				if (grid[up.x][up.y] instanceof FoodCell) {
-					up.eaten++;
+					if (foundNewPellet(up)) {
+						up.food.add(new pellet(up.x, up.y));
+						up.eaten++;
+					}
 					if (up.eaten == numPellets) {
 						pathfound = true;
 						System.out.println("path found is: " + up.history);
@@ -179,9 +209,13 @@ public class PacmanUCS implements PacAction {
 			node down = new node(n.x, n.y + 1, n.steps);
 			down.addToHistory(n.history + "S");
 			down.eaten = n.eaten;
+			down.food = n.food;
 			if (!(grid[down.x][down.y] instanceof WallCell)) {
 				if (grid[down.x][down.y] instanceof FoodCell) {
-					down.eaten++;
+					if (foundNewPellet(down)) {
+						down.food.add(new pellet(down.x, down.y));
+						down.eaten++;
+					}
 					if (down.eaten == numPellets) {
 						pathfound = true;
 						System.out.println("path found is: " + down.history);
@@ -197,6 +231,18 @@ public class PacmanUCS implements PacAction {
 		return fringe;
 	}
 
+	// returns true is this a new pellet added to node
+	public boolean foundNewPellet(node n) {
+		if (n.food.isEmpty())
+			return true;
+
+		for (int i = 0; i < n.food.size(); i++) {
+			if (n.x == n.food.get(i).x && n.y == n.food.get(i).y)
+				return false;
+		}
+		return true;
+	}
+
 	/**
 	 * this class will be on the fringe. it keeps track of the steps taken on
 	 * each possible path. Also tracks how many pellets have been eaten
@@ -207,6 +253,7 @@ public class PacmanUCS implements PacAction {
 		int eaten;
 		int x;
 		int y;
+		ArrayList<pellet> food;
 		String history;
 
 		public node(int x, int y, int steps) {
@@ -214,6 +261,7 @@ public class PacmanUCS implements PacAction {
 			this.steps = steps + 1;
 			this.x = x;
 			this.y = y;
+			this.food = new ArrayList<pellet>();
 			this.history = "";
 		}
 
@@ -224,6 +272,19 @@ public class PacmanUCS implements PacAction {
 		public void info() {
 			System.out.println("x:" + this.x + " y:" + this.y + " steps:"
 					+ this.steps + " eaten:" + this.eaten);
+		}
+	}
+
+	/**
+	 * class for storing what pellets have been seen by a path
+	 */
+	class pellet {
+		int x;
+		int y;
+
+		public pellet(int x, int y) {
+			this.x = x;
+			this.y = y;
 		}
 	}
 }
