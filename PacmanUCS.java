@@ -108,14 +108,21 @@ public class PacmanUCS implements PacAction {
 
 		while (!pathfound) {
 			count++;
-			if (count == 100)
+			if (debug)
+				System.out.println("\n>>>>>>>>>>>>>> count: " + count + "\n");
+			if (count == 44)
 				break;
-			System.out.println("fringe size before expand:" + fringe.size());
+			if (debug)
+				System.out
+						.println("fringe size before expand:" + fringe.size());
 			fringe = expand(fringe, grid, lengthX, lengthY);
-			System.out.println("fringe size after expand:" + fringe.size());
+			if (debug)
+				System.out.println("fringe size after expand:" + fringe.size());
 			removePointlesspaths(fringe);
-			System.out.println("fringe size after removing pointless paths:"
-					+ fringe.size());
+			if (debug)
+				System.out
+						.println("fringe size after removing pointless paths:"
+								+ fringe.size());
 			// pathfound = true;
 		}
 
@@ -141,52 +148,46 @@ public class PacmanUCS implements PacAction {
 
 		// remove first node and repalce with 1 from a step in each direction
 		node n = fringe.remove(0);
+		if (debug) {
+			System.out.println("node being expanded");
+			System.out.println("eaten: " + n.eaten);
+			System.out.println("history: " + n.history);
+			n.info();
+			System.out.println();
+		}
 
 		// step left
 		if (n.x - 1 >= 0) { // check if step is within bounds
 			node left = new node(n.x - 1, n.y, n.steps);
 			left.addToHistory(n.history + "W");// update history
 			left.eaten = n.eaten; // copy over history
-			left.food = n.food; // copy over eaten pellets
+//			left.food = n.food; // copy over eaten pellets
+			for(int i = 0; i < n.food.size(); i++){
+				left.food.add(n.food.get(i));
+			}
+
 			if (!(grid[left.x][left.y] instanceof WallCell)) {
 				if (grid[left.x][left.y] instanceof FoodCell) {
 					if (foundNewPellet(left)) {
 						left.food.add(new pellet(left.x, left.y));
 						++left.eaten;
-						System.out.println(left.eaten);
+
 					}
 					if (left.eaten == numPellets) {
 						pathfound = true;
 						System.out.println("path found is: " + left.history);
 					}
 				}
-				left.info();
-				System.out.println("current history is: " + left.history);
-				fringe.add(left);
-			}
-		}
-
-		// step right
-		if (n.x + 1 <= lengthX) {// check if step is within bounds
-			node right = new node(n.x + 1, n.y, n.steps);
-			right.addToHistory(n.history + "E");
-			right.eaten = n.eaten;
-			right.food = n.food;
-			if (!(grid[right.x][right.y] instanceof WallCell)) {
-				if (grid[right.x][right.y] instanceof FoodCell) {
-					if (foundNewPellet(right)) {
-						right.food.add(new pellet(right.x, right.y));
-						++right.eaten;
-						System.out.println(right.eaten);
-					}
-					if (right.eaten == numPellets) {
-						pathfound = true;
-						System.out.println("path found is: " + right.history);
-					}
+				if (debug) {
+					System.out.println("node from expansion (left)");
+					System.out.println("eaten: " + left.eaten);
+					System.out.println("history: " + left.history);
+					System.out.println("food size: " + left.food.size()
+							+ left.food.isEmpty());
+					left.info();
+					System.out.println();
 				}
-				right.info();
-				System.out.println("current history is: " + right.history);
-				fringe.add(right);
+				fringe.add(left);
 			}
 		}
 
@@ -195,13 +196,16 @@ public class PacmanUCS implements PacAction {
 			node up = new node(n.x, n.y - 1, n.steps);
 			up.addToHistory(n.history + "N");
 			up.eaten = n.eaten;
-			up.food = n.food;
+//			up.food = n.food;
+			for(int i = 0; i < n.food.size(); i++){
+				up.food.add(n.food.get(i));
+			}
 			if (!(grid[up.x][up.y] instanceof WallCell)) {
 				if (grid[up.x][up.y] instanceof FoodCell) {
 					if (foundNewPellet(up)) {
 						up.food.add(new pellet(up.x, up.y));
 						++up.eaten;
-						System.out.println(up.eaten);
+
 					}
 					if (up.eaten == numPellets) {
 						pathfound = true;
@@ -209,24 +213,70 @@ public class PacmanUCS implements PacAction {
 					}
 
 				}
-				up.info();
-				System.out.println("current history is: " + up.history);
+				if (debug) {
+					System.out.println("node from expansion (up)");
+					System.out.println("eaten: " + up.eaten);
+					System.out.println("history: " + up.history);
+					System.out.println("food size: " + up.food.size()
+							+ up.food.isEmpty());
+					up.info();
+					System.out.println();
+				}
 				fringe.add(up);
 			}
 		}
 
+		// step right
+		if (n.x + 1 <= lengthX) {// check if step is within bounds
+			node right = new node(n.x + 1, n.y, n.steps);
+			right.addToHistory(n.history + "E");
+			right.eaten = n.eaten;
+			//right.food = n.food;
+			for(int i = 0; i < n.food.size(); i++){
+				right.food.add(n.food.get(i));
+			}
+			if (!(grid[right.x][right.y] instanceof WallCell)) {
+				if (grid[right.x][right.y] instanceof FoodCell) {
+					if (foundNewPellet(right)) {
+						right.food.add(new pellet(right.x, right.y));
+						++right.eaten;
+
+					}
+					if (right.eaten == numPellets) {
+						pathfound = true;
+						System.out.println("path found is: " + right.history);
+					}
+				}
+
+				if (debug) {
+					System.out.println("node from expansion (right)");
+					System.out.println("eaten: " + right.eaten);
+					System.out.println("history: " + right.history);
+					System.out.println("food size: " + right.food.size()
+							+ right.food.isEmpty());
+					right.info();
+					System.out.println();
+				}
+				fringe.add(right);
+			}
+		}
+
+	
 		// step down
 		if (n.y + 1 <= lengthY) {// check if step is within bounds
 			node down = new node(n.x, n.y + 1, n.steps);
 			down.addToHistory(n.history + "S");
 			down.eaten = n.eaten;
-			down.food = n.food;
+//			down.food = n.food;
+			for(int i = 0; i < n.food.size(); i++){
+				down.food.add(n.food.get(i));
+			}
 			if (!(grid[down.x][down.y] instanceof WallCell)) {
 				if (grid[down.x][down.y] instanceof FoodCell) {
 					if (foundNewPellet(down)) {
 						down.food.add(new pellet(down.x, down.y));
 						++down.eaten;
-						System.out.println(down.eaten);
+
 					}
 					if (down.eaten == numPellets) {
 						pathfound = true;
@@ -234,9 +284,15 @@ public class PacmanUCS implements PacAction {
 					}
 
 				}
-				down.info();
-				System.out.println("current history is: " + down.history);
-				// add to end of fringe
+				if (debug) {
+					System.out.println("node from expansion (down)");
+					System.out.println("eaten: " + down.eaten);
+					System.out.println("history: " + down.history);
+					System.out.println("food size: " + down.food.size()
+							+ down.food.isEmpty());
+					down.info();
+					System.out.println();
+				}
 				fringe.add(down);
 			}
 		}
@@ -246,25 +302,28 @@ public class PacmanUCS implements PacAction {
 
 	// returns true is this a new pellet added to node
 	public boolean foundNewPellet(node n) {
-		System.out.println("entered found new pellet");
-		System.out.println(n.food.isEmpty());
-//		for (int j = 0; j < n.food.size(); j++) {
-		System.out.println(n.food.size());
-//
-//		}
+		if (debug) {
+			System.out.println("entered found new pellet");
+			System.out.println(n.food.isEmpty());
+			System.out.println(n.food.size());
+		}
 		if (n.food.size() == 0) {
-			System.out.println("food is empty");
+			if (debug)
+				System.out.println("food is empty");
 			return true;
 		}
 
 		for (int i = 0; i < n.food.size(); i++) {
-			System.out.println("searching for new pellets");
+			if (debug)
+				System.out.println("searching for new pellets");
 			if (n.x == n.food.get(i).x && n.y == n.food.get(i).y) {
-				System.out.println("found a match at " + n.x + "," + n.y);
+				if (debug)
+					System.out.println("found a match at " + n.x + "," + n.y);
 				return false;
 			}
 		}
-		System.out.println("no match found");
+		if (debug)
+			System.out.println("no match found");
 		return true;
 	}
 
