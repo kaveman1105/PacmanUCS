@@ -110,8 +110,8 @@ public class PacmanUCS implements PacAction {
 			count++;
 			if (debug)
 				System.out.println("\n>>>>>>>>>>>>>> count: " + count + "\n");
-			if (count == 44)
-				break;
+//			if (count == 44)
+//				break;
 			if (debug)
 				System.out
 						.println("fringe size before expand:" + fringe.size());
