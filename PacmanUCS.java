@@ -105,8 +105,8 @@ public class PacmanUCS implements PacAction {
 
 		while (!fringe.isEmpty()) {
 			System.out.println("count:" + count);
-			if (count >= 50)
-				return "";
+//			if (count >= 100)
+//				return "";
 
 			if (fringe.isEmpty()) {
 				return null; // will crash
@@ -124,17 +124,43 @@ public class PacmanUCS implements PacAction {
 				Node up = createNode(current.location.x,
 						current.location.y - 1, current, "N", grid);
 				if (up != null) {
-					up.info();
 					count++;
-					if (!visited.contains(up) && !fringe.contains(up)) {
-						fringe.add(up);
-					} else if (visited.contains(up)
-							&& (grid[current.location.x][current.location.y] instanceof FoodCell)) {
 
+					if (!visited.contains(up) && !fringe.contains(up)) {
+						System.out.println(" 1 not visited no in fringe");
+
+						if (!(grid[current.location.x][current.location.y] instanceof FoodCell)) {
+							System.out.println("2 not visited no in fringe");
+
+							if (current.history != ""
+									&& current.history.charAt(current.history
+											.length() - 1) == 'S') {
+								// do nothing
+							} else {
+								fringe.add(up);
+								System.out
+										.println(" 3 not visited no in fringe");
+								up.info();
+							}
+						} else {
+							fringe.add(up);
+							System.out.println(" 4 not visited no in fringe");
+							up.info();
+						}
+
+					} else if (!(grid[current.location.x][current.location.y] instanceof FoodCell)) {
+						if (current.history != ""
+								&& current.history.charAt(current.history
+										.length() - 1) == 'S') {
+							// do nothing
+						}
 					} else if (fringe.contains(up)) {
 
 						if (lowCostNode(up, fringe)) {
 							fringe.add(up);
+							System.out.println("low cost added");
+							up.info();
+
 						}
 
 					}
@@ -149,23 +175,41 @@ public class PacmanUCS implements PacAction {
 				Node down = createNode(current.location.x,
 						current.location.y + 1, current, "S", grid);
 				if (down != null) {
-					down.info();
 					count++;
-					if (!visited.contains(down) && !fringe.contains(down)) {
-						fringe.add(down);
-					} else if (visited.contains(down)
-							&& (grid[current.location.x][current.location.y] instanceof FoodCell)) {
 
-					}else if (fringe.contains(down)) {
+					if (!visited.contains(down) && !fringe.contains(down)) {
+
+						if (!(grid[current.location.x][current.location.y] instanceof FoodCell)) {
+							if (current.history != ""
+									&& current.history.charAt(current.history
+											.length() - 1) == 'N') {
+								// do nothing
+							} else {
+								fringe.add(down);
+								down.info();
+							}
+						} else {
+							fringe.add(down);
+							down.info();
+						}
+					} else if (!(grid[current.location.x][current.location.y] instanceof FoodCell)) {
+						if (current.history != ""
+								&& current.history.charAt(current.history
+										.length() - 1) == 'N') {
+							// do nothing
+						}
+					} else if (fringe.contains(down)) {
 						// function needed
 						if (lowCostNode(down, fringe)) {
 							fringe.add(down);
+							down.info();
+
 						}
 					}
 				}
 
 			}
-			
+
 			// // step left
 
 			if (current.location.x - 1 >= 0) {// check if step is within bounds
@@ -173,17 +217,34 @@ public class PacmanUCS implements PacAction {
 				Node left = createNode(current.location.x - 1,
 						current.location.y, current, "W", grid);
 				if (left != null) {
-					left.info();
 					count++;
-					if (!visited.contains(left) && !fringe.contains(left)) {
-						fringe.add(left);
-					} else if (visited.contains(left)
-							&& (grid[current.location.x][current.location.y] instanceof FoodCell)) {
 
-					}else if (fringe.contains(left)) {
+					if (!visited.contains(left) && !fringe.contains(left)) {
+						if (!(grid[current.location.x][current.location.y] instanceof FoodCell)) {
+							if (current.history != ""
+									&& current.history.charAt(current.history
+											.length() - 1) == 'E') {
+								// do nothing
+							} else {
+								fringe.add(left);
+								left.info();
+							}
+						} else {
+							fringe.add(left);
+							left.info();
+						}
+					} else if (!(grid[current.location.x][current.location.y] instanceof FoodCell)) {
+						if (current.history != ""
+								&& current.history.charAt(current.history
+										.length() - 1) == 'E') {
+							// do nothing
+						}
+					} else if (fringe.contains(left)) {
 						// function needed
 						if (lowCostNode(left, fringe)) {
 							fringe.add(left);
+							left.info();
+
 						}
 					}
 				}
@@ -198,17 +259,34 @@ public class PacmanUCS implements PacAction {
 				Node right = createNode(current.location.x + 1,
 						current.location.y, current, "E", grid);
 				if (right != null) {
-					right.info();
 					count++;
-					if (!visited.contains(right) && !fringe.contains(right)) {
-						fringe.add(right);
-					} else if (visited.contains(right)
-							&& (grid[current.location.x][current.location.y] instanceof FoodCell)) {
 
-					}else if (fringe.contains(right)) {
+					if (!visited.contains(right) && !fringe.contains(right)) {
+						if (!(grid[current.location.x][current.location.y] instanceof FoodCell)) {
+							if (current.history != ""
+									&& current.history.charAt(current.history
+											.length() - 1) == 'W') {
+								// do nothing
+							} else {
+								fringe.add(right);
+								right.info();
+							}
+						} else {
+							fringe.add(right);
+							right.info();
+						}
+					} else if (!(grid[current.location.x][current.location.y] instanceof FoodCell)) {
+						if (current.history != ""
+								&& current.history.charAt(current.history
+										.length() - 1) == 'W') {
+							// do nothing
+						}
+					} else if (fringe.contains(right)) {
 						// function needed
 						if (lowCostNode(right, fringe)) {
 							fringe.add(right);
+							right.info();
+
 						}
 					}
 				}
@@ -268,7 +346,6 @@ public class PacmanUCS implements PacAction {
 				node.food.add(node.location);
 				if (node.food.isEmpty())
 					System.out.println("food is empty");
-
 
 			}
 		} else
