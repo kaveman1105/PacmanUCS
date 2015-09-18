@@ -105,8 +105,8 @@ public class PacmanUCS implements PacAction {
 
 		while (!fringe.isEmpty()) {
 			System.out.println("count:" + count);
-//			if (count >= 100)
-//				return "";
+			if (count >= 60)
+				return "";
 
 			if (fringe.isEmpty()) {
 				return null; // will crash
@@ -135,6 +135,7 @@ public class PacmanUCS implements PacAction {
 							if (current.history != ""
 									&& current.history.charAt(current.history
 											.length() - 1) == 'S') {
+
 								// do nothing
 							} else {
 								fringe.add(up);
@@ -214,22 +215,30 @@ public class PacmanUCS implements PacAction {
 
 			if (current.location.x - 1 >= 0) {// check if step is within bounds
 				System.out.println("in step left");
+				current.info();
+				System.out.println("WHYYUYYY");
 				Node left = createNode(current.location.x - 1,
 						current.location.y, current, "W", grid);
+				
 				if (left != null) {
 					count++;
+					left.info();
 
 					if (!visited.contains(left) && !fringe.contains(left)) {
 						if (!(grid[current.location.x][current.location.y] instanceof FoodCell)) {
 							if (current.history != ""
 									&& current.history.charAt(current.history
 											.length() - 1) == 'E') {
-								// do nothing
+								System.out.println("NOTHING");
 							} else {
+								System.out.println("3 WHYYUYYY");
+
 								fringe.add(left);
 								left.info();
 							}
 						} else {
+							System.out.println("2 WHYYUYYY");
+
 							fringe.add(left);
 							left.info();
 						}
@@ -237,15 +246,22 @@ public class PacmanUCS implements PacAction {
 						if (current.history != ""
 								&& current.history.charAt(current.history
 										.length() - 1) == 'E') {
-							// do nothing
+							System.out.println("2 NOTHING");
 						}
+						System.out.println("2 OUT NOTHING");
+
 					} else if (fringe.contains(left)) {
 						// function needed
+						
 						if (lowCostNode(left, fringe)) {
+							System.out.println(" 1 WHYYUYYY");
+
 							fringe.add(left);
 							left.info();
 
 						}
+						System.out.println(" TEST WHYYUYYY");
+
 					}
 				}
 
