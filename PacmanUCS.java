@@ -23,7 +23,6 @@ public class PacmanUCS implements PacAction {
 
 	private Point target;
 	private int numPellets;
-	public boolean debug;
 	private String path;
 
 	public PacmanUCS(String fname) {
@@ -39,7 +38,6 @@ public class PacmanUCS implements PacAction {
 	@Override
 	public void init() {
 		target = null;
-		debug = true;
 		path = null;
 		numPellets = 0;
 		System.out.println("init");
@@ -60,8 +58,6 @@ public class PacmanUCS implements PacAction {
 
 			} catch (Exception e) {
 				i--;
-				if (debug)
-					System.out.println("i = " + i);
 			}
 
 			try {
@@ -71,8 +67,7 @@ public class PacmanUCS implements PacAction {
 
 			} catch (Exception e) {
 				j--;
-				if (debug)
-					System.out.println("j = " + j);
+
 			}
 
 			for (int k = 0; k < i; k++)
@@ -80,12 +75,28 @@ public class PacmanUCS implements PacAction {
 					if (grid[k][m] instanceof FoodCell)
 						numPellets++;
 				}
-			if (debug)
-				System.out.println("the board has " + numPellets + " pellets");
 
 			path = findPath(grid, i, j);
 		}
-		// need function
+		if (path != "" && path.length() > 0) {
+			char c = path.charAt(0);
+			path = path.substring(1, path.length());
+
+			switch (c) {
+			case 'N':
+				return PacFace.N;
+
+			case 'S':
+				return PacFace.S;
+
+			case 'W':
+				return PacFace.W;
+			case 'E':
+				return PacFace.E;
+
+			}
+		}
+
 		return PacFace.N;
 	}
 
@@ -103,8 +114,8 @@ public class PacmanUCS implements PacAction {
 
 		while (!fringe.isEmpty()) {
 			System.out.println("count:" + count);
-//			if (count >= 100)
-//				return "";
+			// if (count >= 100)
+			// return "";
 
 			if (fringe.isEmpty()) {
 				return null; // will crash
@@ -113,12 +124,10 @@ public class PacmanUCS implements PacAction {
 			Node current = fringe.remove(0);
 			System.out.print("Current node info ");
 			current.info();
-			if (isGoal(current, numPellets)){
-				System.out.println("Goal path: "+ current.history);
+			if (isGoal(current, numPellets)) {
+				System.out.println("Goal path: " + current.history);
 				return current.history;
 			}
-
-			// visited.add(current);
 
 			// step up
 			if (current.location.y - 1 >= 0) {// check if step is within bounds
@@ -245,30 +254,6 @@ public class PacmanUCS implements PacAction {
 		return "";
 	}
 
-	public boolean lowCostNode(Node current, ArrayList<Node> fringe) {
-		for (int index = 0; index < fringe.size(); index++) {
-			if (fringe.get(index).food.size() == current.food.size()
-					&& fringe.get(index).location.compareTo(current.location) == 0) {
-				if (fringe.get(index).steps == current.steps) {
-					return true;
-				} else if (fringe.get(index).steps > current.steps) {
-					fringe.remove(index);
-					for (; index < fringe.size(); index++) {
-						if (fringe.get(index).food.size() == current.food
-								.size()
-								&& fringe.get(index).location
-										.compareTo(current.location) == 0) {
-							fringe.remove(index);
-							index--;
-						}
-					}
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
 	public boolean isGoal(Node current, int i) {
 		if (current.food.size() == i)
 			return true;
@@ -361,47 +346,3 @@ public class PacmanUCS implements PacAction {
 		}
 	}
 }
-
-//
-// // step right
-//
-// if (current.location.x + 1 <= lengthX) {// check if step is within
-// // bounds
-// System.out.println("in step right");
-// Node right = createNode(current.location.x + 1,
-// current.location.y, current, "E", grid);
-// if (right != null) {
-// count++;
-//
-// if (!visited.contains(right) && !fringe.contains(right)) {
-// if (!(grid[current.location.x][current.location.y] instanceof FoodCell)) {
-// if (current.history != ""
-// && current.history.charAt(current.history
-// .length() - 1) == 'W') {
-// // do nothing
-// } else {
-// fringe.add(right);
-// right.info();
-// }
-// } else {
-// fringe.add(right);
-// right.info();
-// }
-// } else if (!(grid[current.location.x][current.location.y] instanceof
-// FoodCell)) {
-// if (current.history != ""
-// && current.history.charAt(current.history
-// .length() - 1) == 'W') {
-// // do nothing
-// }
-// } else if (fringe.contains(right)) {
-// // function needed
-// if (lowCostNode(right, fringe)) {
-// fringe.add(right);
-// right.info();
-//
-// }
-// }
-// }
-//
-// }
