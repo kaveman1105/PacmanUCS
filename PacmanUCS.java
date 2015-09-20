@@ -103,8 +103,8 @@ public class PacmanUCS implements PacAction {
 
 		while (!fringe.isEmpty()) {
 			System.out.println("count:" + count);
-			if (count >= 10)
-				return "";
+//			if (count >= 100)
+//				return "";
 
 			if (fringe.isEmpty()) {
 				return null; // will crash
@@ -113,8 +113,10 @@ public class PacmanUCS implements PacAction {
 			Node current = fringe.remove(0);
 			System.out.print("Current node info ");
 			current.info();
-			if (isGoal(current, numPellets))
+			if (isGoal(current, numPellets)){
+				System.out.println("Goal path: "+ current.history);
 				return current.history;
+			}
 
 			// visited.add(current);
 
@@ -148,8 +150,8 @@ public class PacmanUCS implements PacAction {
 			}
 
 			// step down
-
-			if (current.location.y + 1 <= lengthY) {// check if step is within bounds
+			if (current.location.y + 1 <= lengthY) {// check if step is within
+													// bounds
 				System.out.println("in step down");
 				Node down = createNode(current.location.x,
 						current.location.y + 1, current, "S", grid);
@@ -172,6 +174,66 @@ public class PacmanUCS implements PacAction {
 						count++;
 						down.info();
 						fringe.add(down);
+					}
+
+				}
+			}
+
+			// step left
+			if (current.location.x - 1 >= 0) {// check if step is within
+												// bounds
+				System.out.println("in step left");
+				Node left = createNode(current.location.x - 1,
+						current.location.y, current, "W", grid);
+
+				if (left != null) {
+					// if step left and right
+					if (current.history != ""
+							&& current.history
+									.charAt(current.history.length() - 1) == 'E') {
+						// only add if current was a food cell
+						if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+							count++;
+							left.info();
+							fringe.add(left);
+						} else {
+							// dont add
+						}
+					} else {
+						// add possible step
+						count++;
+						left.info();
+						fringe.add(left);
+					}
+
+				}
+			}
+
+			// step right
+			if (current.location.x + 1 <= lengthX) {// check if step is within
+				// bounds
+				System.out.println("in step right");
+				Node right = createNode(current.location.x + 1,
+						current.location.y, current, "E", grid);
+
+				if (right != null) {
+					// if step left and right
+					if (current.history != ""
+							&& current.history
+									.charAt(current.history.length() - 1) == 'W') {
+						// only add if current was a food cell
+						if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+							count++;
+							right.info();
+							fringe.add(right);
+						} else {
+							// dont add
+						}
+					} else {
+						// add possible step
+						count++;
+						right.info();
+						fringe.add(right);
 					}
 
 				}
@@ -300,156 +362,6 @@ public class PacmanUCS implements PacAction {
 	}
 }
 
-// // step up
-// if (current.location.y - 1 >= 0) {// check if step is within bounds
-// System.out.println("in step up");
-// Node up = createNode(current.location.x,
-// current.location.y - 1, current, "N", grid);
-// if (up != null) {
-// count++;
-//
-// //if not in visited
-// if (!visited.contains(up) && !fringe.contains(up)) {
-//
-// if (!(grid[current.location.x][current.location.y] instanceof FoodCell)) {
-//
-// if (current.history != ""
-// && current.history.charAt(current.history
-// .length() - 1) == 'S') {
-//
-// // do nothing
-// } else {
-// fringe.add(up);
-// System.out
-// .println(" 3 not visited no in fringe");
-// up.info();
-// }
-// } else {
-// fringe.add(up);
-// System.out.println(" 4 not visited no in fringe");
-// up.info();
-// }
-//
-// } else if (!(grid[current.location.x][current.location.y] instanceof
-// FoodCell)) {
-// if (current.history != ""
-// && current.history.charAt(current.history
-// .length() - 1) == 'S') {
-// // do nothing
-// }
-// } else if (fringe.contains(up)) {
-//
-// if (lowCostNode(up, fringe)) {
-// fringe.add(up);
-// System.out.println("low cost added");
-// up.info();
-//
-// }
-//
-// }
-// }
-//
-// }
-//
-// // step down
-// if (current.location.y + 1 <= lengthY) {// check if step is within
-// // bounds
-// System.out.println("in step down");
-// Node down = createNode(current.location.x,
-// current.location.y + 1, current, "S", grid);
-// if (down != null) {
-// count++;
-//
-// if (!visited.contains(down) && !fringe.contains(down)) {
-//
-// if (!(grid[current.location.x][current.location.y] instanceof FoodCell)) {
-// if (current.history != ""
-// && current.history.charAt(current.history
-// .length() - 1) == 'N') {
-// // do nothing
-// } else {
-// fringe.add(down);
-// down.info();
-// }
-// } else {
-// fringe.add(down);
-// down.info();
-// }
-// } else if (!(grid[current.location.x][current.location.y] instanceof
-// FoodCell)) {
-// if (current.history != ""
-// && current.history.charAt(current.history
-// .length() - 1) == 'N') {
-// // do nothing
-// }
-// } else if (fringe.contains(down)) {
-// // function needed
-// if (lowCostNode(down, fringe)) {
-// fringe.add(down);
-// down.info();
-//
-// }
-// }
-// }
-//
-// }
-//
-// // // step left
-//
-// if (current.location.x - 1 >= 0) {// check if step is within bounds
-// System.out.println("in step left");
-// current.info();
-// System.out.println("WHYYUYYY");
-// Node left = createNode(current.location.x - 1,
-// current.location.y, current, "W", grid);
-//
-// if (left != null) {
-// count++;
-// left.info();
-//
-// if (!visited.contains(left) && !fringe.contains(left)) {
-// if (!(grid[current.location.x][current.location.y] instanceof FoodCell)) {
-// if (current.history != ""
-// && current.history.charAt(current.history
-// .length() - 1) == 'E') {
-// System.out.println("NOTHING");
-// } else {
-// System.out.println("3 WHYYUYYY");
-//
-// fringe.add(left);
-// left.info();
-// }
-// } else {
-// System.out.println("2 WHYYUYYY");
-//
-// fringe.add(left);
-// left.info();
-// }
-// } else if (!(grid[current.location.x][current.location.y] instanceof
-// FoodCell)) {
-// if (current.history != ""
-// && current.history.charAt(current.history
-// .length() - 1) == 'E') {
-// System.out.println("2 NOTHING");
-// }
-// System.out.println("2 OUT NOTHING");
-//
-// } else if (fringe.contains(left)) {
-// // function needed
-//
-// if (lowCostNode(left, fringe)) {
-// System.out.println(" 1 WHYYUYYY");
-//
-// fringe.add(left);
-// left.info();
-//
-// }
-// System.out.println(" TEST WHYYUYYY");
-//
-// }
-// }
-//
-// }
 //
 // // step right
 //
