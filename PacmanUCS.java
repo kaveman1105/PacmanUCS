@@ -85,10 +85,8 @@ public class PacmanUCS implements PacAction {
 			switch (c) {
 			case 'N':
 				return PacFace.N;
-
 			case 'S':
 				return PacFace.S;
-
 			case 'W':
 				return PacFace.W;
 			case 'E':
@@ -107,9 +105,9 @@ public class PacmanUCS implements PacAction {
 		Node start = new Node(pacman.getX(), pacman.getY(), -1);
 		// create fringe
 		ArrayList<Node> fringe = new ArrayList<Node>();
+		// visited
+		Set<Node> visited = new TreeSet<Node>();
 		fringe.add(start);
-		// create visited set
-		// Set<Node> visited = new TreeSet<Node>();
 		int count = 0;
 
 		while (!fringe.isEmpty()) {
@@ -124,10 +122,13 @@ public class PacmanUCS implements PacAction {
 			Node current = fringe.remove(0);
 			System.out.print("Current node info ");
 			current.info();
+			count++;
 			if (isGoal(current, numPellets)) {
 				System.out.println("Goal path: " + current.history);
 				return current.history;
 			}
+			// add current node to visited
+			visited.add(current);
 
 			// step up
 			if (current.location.y - 1 >= 0) {// check if step is within bounds
@@ -136,25 +137,35 @@ public class PacmanUCS implements PacAction {
 						current.location.y - 1, current, "N", grid);
 
 				if (up != null) {
-					// if step down and up
-					if (current.history != ""
-							&& current.history
-									.charAt(current.history.length() - 1) == 'S') {
-						// only add if current was a food cell
-						if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-							count++;
+					// check fringe and visited
+					if (!visited.contains(up) || !fringe.contains(up)) {
+						// if step down and up
+						if (current.history != ""
+								&& current.history.charAt(current.history
+										.length() - 1) == 'S') {
+							// only add if current was a food cell
+							if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+
+								up.info();
+								fringe.add(up);
+							} else {
+								// dont add
+							}
+						} else {
+							// add possible step
+
 							up.info();
 							fringe.add(up);
-						} else {
-							// dont add
 						}
-					} else {
-						// add possible step
-						count++;
-						up.info();
-						fringe.add(up);
+					} else if (fringe.contains(up)) {
+						System.out.println("up is in fringe");
+						for (int i = 0; i < fringe.size(); i++) {
+							if (fringe.get(i).compareTo(up) == -1) {
+								fringe.remove(i);
+								i--;
+							}
+						}
 					}
-
 				}
 			}
 
@@ -166,25 +177,35 @@ public class PacmanUCS implements PacAction {
 						current.location.y + 1, current, "S", grid);
 
 				if (down != null) {
-					// if step down and up
-					if (current.history != ""
-							&& current.history
-									.charAt(current.history.length() - 1) == 'N') {
-						// only add if current was a food cell
-						if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-							count++;
+					if (!visited.contains(down) || !fringe.contains(down)) {
+						// if step down and up
+						if (current.history != ""
+								&& current.history.charAt(current.history
+										.length() - 1) == 'N') {
+							// only add if current was a food cell
+							if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+
+								down.info();
+								fringe.add(down);
+							} else {
+								// dont add
+							}
+						} else {
+							// add possible step
+
 							down.info();
 							fringe.add(down);
-						} else {
-							// dont add
 						}
-					} else {
-						// add possible step
-						count++;
-						down.info();
-						fringe.add(down);
-					}
 
+					} else if (fringe.contains(down)) {
+						System.out.println("down is in fringe");
+						for (int i = 0; i < fringe.size(); i++) {
+							if (fringe.get(i).compareTo(down) == -1) {
+								fringe.remove(i);
+								i--;
+							}
+						}
+					}
 				}
 			}
 
@@ -196,25 +217,35 @@ public class PacmanUCS implements PacAction {
 						current.location.y, current, "W", grid);
 
 				if (left != null) {
-					// if step left and right
-					if (current.history != ""
-							&& current.history
-									.charAt(current.history.length() - 1) == 'E') {
-						// only add if current was a food cell
-						if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-							count++;
+					if (!visited.contains(left) || !fringe.contains(left)) {
+						// if step left and right
+						if (current.history != ""
+								&& current.history.charAt(current.history
+										.length() - 1) == 'E') {
+							// only add if current was a food cell
+							if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+
+								left.info();
+								fringe.add(left);
+							} else {
+								// dont add
+							}
+						} else {
+							// add possible step
+
 							left.info();
 							fringe.add(left);
-						} else {
-							// dont add
 						}
-					} else {
-						// add possible step
-						count++;
-						left.info();
-						fringe.add(left);
-					}
 
+					} else if (fringe.contains(left)) {
+						System.out.println("left is in fringe");
+						for (int i = 0; i < fringe.size(); i++) {
+							if (fringe.get(i).compareTo(left) == -1) {
+								fringe.remove(i);
+								i--;
+							}
+						}
+					}
 				}
 			}
 
@@ -226,25 +257,35 @@ public class PacmanUCS implements PacAction {
 						current.location.y, current, "E", grid);
 
 				if (right != null) {
-					// if step left and right
-					if (current.history != ""
-							&& current.history
-									.charAt(current.history.length() - 1) == 'W') {
-						// only add if current was a food cell
-						if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-							count++;
+					if (!visited.contains(right) || !fringe.contains(right)) {
+						// if step left and right
+						if (current.history != ""
+								&& current.history.charAt(current.history
+										.length() - 1) == 'W') {
+							// only add if current was a food cell
+							if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+
+								right.info();
+								fringe.add(right);
+							} else {
+								// dont add
+							}
+						} else {
+							// add possible step
+
 							right.info();
 							fringe.add(right);
-						} else {
-							// dont add
 						}
-					} else {
-						// add possible step
-						count++;
-						right.info();
-						fringe.add(right);
-					}
 
+					} else if (fringe.contains(right)) {
+						System.out.println("right is in fringe");
+						for (int i = 0; i < fringe.size(); i++) {
+							if (fringe.get(i).compareTo(right) == -1) {
+								fringe.remove(i);
+								i--;
+							}
+						}
+					}
 				}
 			}
 
@@ -308,9 +349,16 @@ public class PacmanUCS implements PacAction {
 
 		@Override
 		public int compareTo(Node other) {
-			if (this.location.compareTo(other.location) == 0)
-				return 0;
-			return -1;
+			// if at the same location
+			if (this.location.compareTo(other.location) == 0) {
+				if (this.food.size() == other.food.size())
+					return 0;
+				if (this.food.size() < other.food.size())
+					return -1;
+				else
+					return 1;
+			}
+			return 2;
 		}
 
 		public void info() {
