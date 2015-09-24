@@ -112,8 +112,8 @@ public class PacmanUCS implements PacAction {
 
 		while (!fringe.isEmpty()) {
 			System.out.println("count:" + count);
-			// if (count >= 100)
-			// return "";
+			 if (count >= 10)
+			 return "";
 
 			if (fringe.isEmpty()) {
 				return null; // will crash
@@ -127,8 +127,11 @@ public class PacmanUCS implements PacAction {
 				System.out.println("Goal path: " + current.history);
 				return current.history;
 			}
+			printVisited(visited);
+			printFringe(fringe);
 			// add current node to visited
 			visited.add(current);
+			
 
 			// step up
 			if (current.location.y - 1 >= 0) {// check if step is within bounds
@@ -293,6 +296,21 @@ public class PacmanUCS implements PacAction {
 		if (fringe.isEmpty())
 			System.out.println("fringe is empty");
 		return "";
+	}
+	
+	public void printFringe(ArrayList<Node> fringe){
+		System.out.println("Nodes in fringe");
+		for(Node n: fringe){
+			n.info();
+		}
+	}
+	
+	public void printVisited(Set<Node> visited){
+		System.out.println("Nodes in visited");
+		for(Node n: visited){
+			n.info();
+		}
+		
 	}
 
 	public boolean isGoal(Node current, int i) {
