@@ -112,8 +112,8 @@ public class PacmanUCS implements PacAction {
 
 		while (!fringe.isEmpty()) {
 			System.out.println("count:" + count);
-			 if (count >= 10)
-			 return "";
+			if (count >= 10)
+				return "";
 
 			if (fringe.isEmpty()) {
 				return null; // will crash
@@ -131,7 +131,6 @@ public class PacmanUCS implements PacAction {
 			printFringe(fringe);
 			// add current node to visited
 			visited.add(current);
-			
 
 			// step up
 			if (current.location.y - 1 >= 0) {// check if step is within bounds
@@ -140,6 +139,7 @@ public class PacmanUCS implements PacAction {
 						current.location.y - 1, current, "N", grid);
 
 				if (up != null) {
+					
 					// check fringe and visited
 					if (!visited.contains(up) || !fringe.contains(up)) {
 						// if step down and up
@@ -160,14 +160,28 @@ public class PacmanUCS implements PacAction {
 							up.info();
 							fringe.add(up);
 						}
-					} else if (fringe.contains(up)) {
-						System.out.println("up is in fringe");
-						for (int i = 0; i < fringe.size(); i++) {
-							if (fringe.get(i).compareTo(up) == -1) {
-								fringe.remove(i);
-								i--;
+					} else {
+						for(int i= 0 ; i < fringe.size(); i++){
+							for(int j = 0; j +1 < fringe.get(i).locationHistory.size(); j++){
+								if(fringe.get(i).locationHistory.get(j).compareTo(current.location)==0){
+									if(fringe.get(i).locationHistory.get(j).compareTo(up.location)==0){
+										if(fringe.get(i).food.size() >  current.food.size()){
+											
+											
+										}
+									}
+								}
 							}
 						}
+							
+						//if (fringe.contains(up)) {
+//						System.out.println("up is in fringe");
+//						for (int i = 0; i < fringe.size(); i++) {
+//							if (fringe.get(i).compareTo(up) == -1) {
+//								fringe.remove(i);
+//								i--;
+//							}
+//						}
 					}
 				}
 			}
@@ -297,20 +311,20 @@ public class PacmanUCS implements PacAction {
 			System.out.println("fringe is empty");
 		return "";
 	}
-	
-	public void printFringe(ArrayList<Node> fringe){
+
+	public void printFringe(ArrayList<Node> fringe) {
 		System.out.println("Nodes in fringe");
-		for(Node n: fringe){
+		for (Node n : fringe) {
 			n.info();
 		}
 	}
-	
-	public void printVisited(Set<Node> visited){
+
+	public void printVisited(Set<Node> visited) {
 		System.out.println("Nodes in visited");
-		for(Node n: visited){
+		for (Node n : visited) {
 			n.info();
 		}
-		
+
 	}
 
 	public boolean isGoal(Node current, int i) {
@@ -323,7 +337,11 @@ public class PacmanUCS implements PacAction {
 			PacCell[][] grid) {
 
 		Node node = new Node(x, y, previous.steps);
-		node.addToHistory(previous.history + direction);
+		for (Location temp : previous.locationHistory) {
+			node.locationHistory.add(new Location(temp.x, temp.y));
+		}
+		node.addToHistory(previous.history + direction, x, y);
+
 		for (Location temp : previous.food) {
 			node.food.add(new Location(temp.x, temp.y));
 		}
@@ -353,15 +371,19 @@ public class PacmanUCS implements PacAction {
 		Location location;
 		Set<Location> food;
 		String history;
+		ArrayList<Location> locationHistory;
 
 		public Node(int x, int y, int steps) {
 			this.steps = steps + 1;
 			this.location = new Location(x, y);
 			this.food = new TreeSet<Location>();
 			this.history = "";
+			this.locationHistory = new ArrayList<Location>();
+
 		}
 
-		public void addToHistory(String s) {
+		public void addToHistory(String s, int x, int y) {
+			this.locationHistory.add(new Location(x, y));
 			this.history = s;
 		}
 
@@ -383,6 +405,10 @@ public class PacmanUCS implements PacAction {
 			System.out.println("x:" + this.location.x + " y:" + this.location.y
 					+ " steps:" + this.steps + " food size:" + this.food.size()
 					+ " history:" + this.history);
+			for(Location x: this.locationHistory){
+				System.out.print("("+ x.x + "," + x.y+") ");
+			}
+			System.out.println();
 		}
 
 	}
