@@ -131,11 +131,11 @@ public class PacmanUCS implements PacAction {
 				System.out.println("Goal path: " + current.history);
 				return current.history;
 			}
-			printVisited(visited);
-			printFringe(fringe);
+			
 			// add current node to visited
 			visited.add(current);
-
+			printVisited(visited);
+			printFringe(fringe);
 			// step up
 			if (current.location.y - 1 >= 0) {// check if step is within bounds
 				System.out.println("in step up");
@@ -144,7 +144,7 @@ public class PacmanUCS implements PacAction {
 				
 				if(up != null){
 					//if(!visited.contains(up) || !fringe.contains(up)){
-					if(!checkVisited(up, visited) || !checkFringe(up, fringe)){
+					if(!checkVisited(up, visited) && !checkFringe(up, fringe)){
 						if (current.history != "" && current.history.charAt(current.history.length() - 1) == 'S'){
 							// only add if current was a food cell
 							if (grid[current.location.x][current.location.y] instanceof FoodCell) {
@@ -160,12 +160,22 @@ public class PacmanUCS implements PacAction {
 					}
 					else if(checkFringe(up, fringe)){
 						System.out.println("in fringe");
-						int index = fringe.indexOf(up);
-						if(fringe.get(index).steps < up.steps){
-							System.out.println("replaced node in fringe");
-							fringe.remove(index);
-							fringe.add(index, up);
-							up.info();
+						int index = 0;
+						for(int i = 0; i < fringe.size(); i++){
+							if(up.location.x == fringe.get(i).location.x && up.location.y == fringe.get(i).location.y){
+								System.out.println("Found a equal node");
+								System.out.println("node on fringe info");
+								fringe.get(i).info();
+								System.out.println("up info");
+								up.info();
+								if(fringe.get(i).steps < up.steps){
+									System.out.println("replaced node in fringe");
+									fringe.remove(i);
+									fringe.add(i, up);
+									up.info();
+								}
+								break;
+							}
 						}
 							
 					}
@@ -399,18 +409,20 @@ public class PacmanUCS implements PacAction {
 	
 	public boolean checkVisited( Node current, Set<Node> visited){
 		System.out.println("checking visited");
-		if(visited.contains(current)){
-			System.out.println("found in visited");
-			return true;
+		System.out.println("current node info");
+		current.info();
+		System.out.println("nodes in visited:");
+		for(Node n: visited){
+			System.out.print("("+ n.location.x + "," + n.location.y+") ");
 		}
-//		Node[] list = visited.toArray();
-//		
-//		for(int i = 0; i < list.length; i++){
-//			if(list[i].location.x == current.location.x && list[i].location.y == current.location.y){
-//				System.out.println("found in visited");
-//				return true;
-//			}
-//		}
+		System.out.println();
+		for(Node n: visited){
+			if(n.location.x == current.location.x && n.location.y == current.location.y){
+				System.out.println("Found match in visited");
+				return true;
+			}
+		}
+		
 		System.out.println("not in visited");
 		return false;
 	}
