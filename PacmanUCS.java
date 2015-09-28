@@ -110,10 +110,10 @@ public class PacmanUCS implements PacAction {
 		// create fringe
 		PriorityQueue<Node> fringe = new PriorityQueue<Node>();
 		// visited
-		Set<Node> visited = new TreeSet<Node>();
+		ArrayList<Node> visited = new ArrayList<Node>();
 		fringe.add(start);
 		int count = 0;
-		
+
 		while (!fringe.isEmpty()) {
 			System.out.println("count:" + count);
 			if (count >= 4)
@@ -123,6 +123,7 @@ public class PacmanUCS implements PacAction {
 				return null; // will crash
 			}
 			// get current node
+			System.out.println("pop fringe");
 			Node current = fringe.remove();
 			System.out.print("Current node info ");
 			current.info();
@@ -133,7 +134,29 @@ public class PacmanUCS implements PacAction {
 			}
 
 			// add current node to visited
-			visited.add(current);
+			addToSet(visited, current);
+
+			// create possible nodes
+
+			if (current.location.y - 1 >= 0) {
+				Node up = createNode(current.location.x,
+						current.location.y - 1, current, "N", grid);
+			}
+
+			if (current.location.y + 1 <= lengthY) {
+				Node down = createNode(current.location.x,
+						current.location.y + 1, current, "S", grid);
+			}
+
+			if (current.location.x + 1 <= lengthX) {
+				Node right = createNode(current.location.x + 1,
+						current.location.y, current, "E", grid);
+			}
+
+			if (current.location.x - 1 >= 0) {
+				Node left = createNode(current.location.x - 1,
+						current.location.y, current, "W", grid);
+			}
 
 		}
 		if (fringe.isEmpty())
@@ -141,11 +164,26 @@ public class PacmanUCS implements PacAction {
 		return "";
 	}
 
+	/**
+	 * adds a node to the set if it doesn't already exists based only on
+	 * location of node
+	 */
+	public void addToSet(ArrayList<Node> visited, Node node) {
+		boolean exists = false;
+
+		for (Node n : visited) {
+			if (n.location.x == node.location.x
+					&& n.location.y == node.location.y)
+				return;
+		}
+		visited.add(node);
+	}
+
 	public void printFringe(PriorityQueue<Node> fringe) {
 		System.out.println("Nodes in fringe");
 		Node[] temp = fringe.toArray(new Node[0]);
-		
-		for(int i = 0; i < temp.length; i++){
+
+		for (int i = 0; i < temp.length; i++) {
 			temp[i].info();
 		}
 	}
