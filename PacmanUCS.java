@@ -138,14 +138,52 @@ public class PacmanUCS implements PacAction {
 
 			// create possible nodes
 
+			// step up
 			if (current.location.y - 1 >= 0) {
+				System.out.println("\nstep up");
 				Node up = createNode(current.location.x,
 						current.location.y - 1, current, "N", grid);
+				// if node is valid location
+				if (up != null) {
+					if (!checkVisited(up, visited)) {
+						if (!checkFringe(up, fringe)) {
+							System.out.println("up node added to fringe");
+							fringe.add(up);
+						}
+					} else if (checkFringe(up, fringe)) {
+						Node temp = findLowerNode(up, fringe);
+						// if they have the same num of step
+						if (temp.compareTo(up) == 0) {
+							if (temp.food.size() == up.food.size()) {
+								System.out
+										.println("Same steps and food size. keep both");
+								fringe.add(up);
+							} else if (temp.food.size() < up.food.size()) {
+								System.out
+										.println("up has more pellets and same steps. replace with up");
+								if (fringe.remove(temp))
+									System.out.println("old node removed");
+								fringe.add(up);
+							}
+						}
+					}
+				}
 			}
 
+			// step down
 			if (current.location.y + 1 <= lengthY) {
+				System.out.println("\nstep down");
 				Node down = createNode(current.location.x,
 						current.location.y + 1, current, "S", grid);
+				// if node is valid location
+				if (down != null) {
+					if (!checkVisited(down, visited)) {
+						if (!checkFringe(down, fringe)) {
+							System.out.println("down node added to fringe");
+							fringe.add(down);
+						}
+					}
+				}
 			}
 
 			if (current.location.x + 1 <= lengthX) {
@@ -162,6 +200,22 @@ public class PacmanUCS implements PacAction {
 		if (fringe.isEmpty())
 			System.out.println("fringe is empty");
 		return "";
+	}
+
+	/**
+	 * finds matching node within fringe
+	 */
+	public Node findLowerNode(Node current, PriorityQueue fringe) {
+
+		Node[] list = fringe.toArray(new Node[0]);
+		if (list != null)
+			for (int i = 0; i < list.length; i++) {
+				if (list[i].location.compareTo(current.location) == 0) {
+					return list[i];
+
+				}
+			}
+		return null;
 	}
 
 	/**
@@ -202,6 +256,10 @@ public class PacmanUCS implements PacAction {
 		return false;
 	}
 
+	/**
+	 * creates a new node. updates steps, history, historylocations and checks
+	 * if location is a pellet
+	 */
 	public Node createNode(int x, int y, Node previous, String direction,
 			PacCell[][] grid) {
 
@@ -229,21 +287,34 @@ public class PacmanUCS implements PacAction {
 		return node;
 	}
 
+	/**
+	 * checks if a node exists within the fringe
+	 */
 	public boolean checkFringe(Node current, PriorityQueue<Node> fringe) {
 		System.out.println("checking fringe");
-		//
+		if (fringe.isEmpty()) {
+			System.out.println("fringe is empty");
+			return false;
+		}
+
+		Node[] list = fringe.toArray(new Node[0]);
+
+		for (int i = 0; i < list.length; i++) {
+			if (list[i].location.x == current.location.x
+					&& list[i].location.y == current.location.y) {
+				System.out.println("matching location found in fringe");
+				return true;
+			}
+		}
+		System.out.println("not in fringe");
 		return false;
 	}
 
-	public boolean checkVisited(Node current, Set<Node> visited) {
+	/**
+	 * checks if a node exists within visited
+	 */
+	public boolean checkVisited(Node current, ArrayList<Node> visited) {
 		System.out.println("checking visited");
-		System.out.println("current node info");
-		current.info();
-		System.out.println("nodes in visited:");
-		for (Node n : visited) {
-			System.out.print("(" + n.location.x + "," + n.location.y + ") ");
-		}
-		System.out.println();
 		for (Node n : visited) {
 			if (n.location.x == current.location.x
 					&& n.location.y == current.location.y) {
