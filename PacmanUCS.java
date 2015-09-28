@@ -135,6 +135,7 @@ public class PacmanUCS implements PacAction {
 
 			// add current node to visited
 			addToSet(visited, current);
+			printFringe(fringe);
 
 			// create possible nodes
 
@@ -207,11 +208,13 @@ public class PacmanUCS implements PacAction {
 	 */
 	public Node findLowerNode(Node current, PriorityQueue fringe) {
 
-		Node[] list = fringe.toArray(new Node[0]);
+		Object[] list = fringe.toArray();
+		System.out.println("\n\n\n\nmade queue into a array");
 		if (list != null)
 			for (int i = 0; i < list.length; i++) {
-				if (list[i].location.compareTo(current.location) == 0) {
-					return list[i];
+				Node n = (Node)list[i];
+				if (n.location.compareTo(current.location) == 0) {
+					return n;
 
 				}
 			}
@@ -235,10 +238,10 @@ public class PacmanUCS implements PacAction {
 
 	public void printFringe(PriorityQueue<Node> fringe) {
 		System.out.println("Nodes in fringe");
-		Node[] temp = fringe.toArray(new Node[0]);
-
+		Object[] temp = fringe.toArray();
 		for (int i = 0; i < temp.length; i++) {
-			temp[i].info();
+			Node n = (Node)temp[i];
+			n.info();
 		}
 	}
 
