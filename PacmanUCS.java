@@ -116,14 +116,14 @@ public class PacmanUCS implements PacAction {
 
 		while (!fringe.isEmpty()) {
 			System.out.println("count:" + count);
-			if (count >= 4)
+			if (count >= 3)
 				return "";
 
 			if (fringe.isEmpty()) {
 				return null; // will crash
 			}
 			// get current node
-			System.out.println("pop fringe");
+			System.out.println("\npop fringe");
 			Node current = fringe.remove();
 			System.out.print("Current node info ");
 			current.info();
@@ -146,13 +146,18 @@ public class PacmanUCS implements PacAction {
 						current.location.y - 1, current, "N", grid);
 				// if node is valid location
 				if (up != null) {
-					if (!checkVisited(up, visited)) {
-						if (!checkFringe(up, fringe)) {
-							System.out.println("up node added to fringe");
-							fringe.add(up);
-						}
+					if (!checkVisited(up, visited) || !checkFringe(up, fringe)) {
+
+						System.out.println("up node added to fringe");
+						fringe.add(up);
+						up.info();
+
 					} else if (checkFringe(up, fringe)) {
+						// ignore path
+						System.out
+								.println("Not in visited, in fringe and up cost greater than current");
 						Node temp = findLowerNode(up, fringe);
+						
 						// if they have the same num of step
 						if (temp.compareTo(up) == 0) {
 							if (temp.food.size() == up.food.size()) {
@@ -162,10 +167,14 @@ public class PacmanUCS implements PacAction {
 							} else if (temp.food.size() < up.food.size()) {
 								System.out
 										.println("up has more pellets and same steps. replace with up");
-								if (fringe.remove(temp))
-									System.out.println("old node removed");
+								fringe.remove(temp);
 								fringe.add(up);
+
 							}
+						}
+						else if(temp.compareTo(up) == 1){
+							fringe.remove(temp);
+							fringe.add(up);
 						}
 					}
 				}
@@ -178,12 +187,39 @@ public class PacmanUCS implements PacAction {
 						current.location.y + 1, current, "S", grid);
 				// if node is valid location
 				if (down != null) {
-					if (!checkVisited(down, visited)) {
-						if (!checkFringe(down, fringe)) {
-							System.out.println("down node added to fringe");
+					if (!checkVisited(down, visited)
+							|| !checkFringe(down, fringe)) {
+						System.out.println("down node added to fringe");
+						fringe.add(down);
+						down.info();
+					} else if (checkFringe(down, fringe)) {
+						// ignore path
+						System.out
+								.println("Not in visited, in fringe and down cost greater than current");
+						//temp is the node in the fringe that were comparing
+						Node temp = findLowerNode(down, fringe);
+						temp.info();
+						// if they have the same num of step
+						if (temp.compareTo(down) == 0) {
+							if (temp.food.size() == down.food.size()) {
+								System.out
+										.println("Same steps and food size. keep both");
+								fringe.add(down);
+							} else if (temp.food.size() < down.food.size()) {
+								System.out
+										.println("down has more pellets and same steps. replace with down");
+								fringe.remove(temp);
+								fringe.add(down);
+
+							}
+						}
+						//node in fringe has more steps
+						else if(temp.compareTo(down) == 1){
+							fringe.remove(temp);
 							fringe.add(down);
 						}
 					}
+
 				}
 			}
 
@@ -209,10 +245,9 @@ public class PacmanUCS implements PacAction {
 	public Node findLowerNode(Node current, PriorityQueue fringe) {
 
 		Object[] list = fringe.toArray();
-		System.out.println("\n\n\n\nmade queue into a array");
 		if (list != null)
 			for (int i = 0; i < list.length; i++) {
-				Node n = (Node)list[i];
+				Node n = (Node) list[i];
 				if (n.location.compareTo(current.location) == 0) {
 					return n;
 
@@ -240,7 +275,7 @@ public class PacmanUCS implements PacAction {
 		System.out.println("Nodes in fringe");
 		Object[] temp = fringe.toArray();
 		for (int i = 0; i < temp.length; i++) {
-			Node n = (Node)temp[i];
+			Node n = (Node) temp[i];
 			n.info();
 		}
 	}
@@ -300,11 +335,13 @@ public class PacmanUCS implements PacAction {
 			return false;
 		}
 
-		Node[] list = fringe.toArray(new Node[0]);
+		Object[] list = fringe.toArray();
+		Node n;
 
 		for (int i = 0; i < list.length; i++) {
-			if (list[i].location.x == current.location.x
-					&& list[i].location.y == current.location.y) {
+			n = (Node) list[i];
+			if (n.location.x == current.location.x
+					&& n.location.y == current.location.y) {
 				System.out.println("matching location found in fringe");
 				return true;
 			}
