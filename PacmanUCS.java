@@ -116,17 +116,17 @@ public class PacmanUCS implements PacAction {
 
 		while (!fringe.isEmpty()) {
 			System.out.println("count:" + count);
-			if (count >= 3)
-				return "";
+			// if (count >= 20)
+			// return "";
 
 			if (fringe.isEmpty()) {
 				return null; // will crash
 			}
 			// get current node
-			System.out.println("\npop fringe");
+//			System.out.println("\npop fringe");
 			Node current = fringe.remove();
-			System.out.print("Current node info ");
-			current.info();
+//			System.out.print("Current node info ");
+//			current.info();
 			count++;
 			if (isGoal(current, numPellets)) {
 				System.out.println("Goal path: " + current.history);
@@ -135,46 +135,77 @@ public class PacmanUCS implements PacAction {
 
 			// add current node to visited
 			addToSet(visited, current);
-			printFringe(fringe);
+			// printFringe(fringe);
 
 			// create possible nodes
 
 			// step up
 			if (current.location.y - 1 >= 0) {
-				System.out.println("\nstep up");
+//				System.out.println("\nstep up");
 				Node up = createNode(current.location.x,
 						current.location.y - 1, current, "N", grid);
 				// if node is valid location
 				if (up != null) {
+
 					if (!checkVisited(up, visited) || !checkFringe(up, fringe)) {
 
-						System.out.println("up node added to fringe");
-						fringe.add(up);
-						up.info();
+//						System.out.println("up node added to fringe");
+						if (current.history != ""
+								&& current.history.charAt(current.history
+										.length() - 1) == 'S') {
+							if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+								System.out.println(" 1 up node added to fringe");
+
+								fringe.add(up);
+								System.out.println(" 2  up node added to fringe");
+
+							}
+						}else{
+							fringe.add(up);
+
+						}
+//						up.info();
 
 					} else if (checkFringe(up, fringe)) {
 						// ignore path
-						System.out
-								.println("Not in visited, in fringe and up cost greater than current");
+//						System.out
+//								.println("Not in visited, in fringe and up cost greater than current");
 						Node temp = findLowerNode(up, fringe);
-						
+
 						// if they have the same num of step
 						if (temp.compareTo(up) == 0) {
 							if (temp.food.size() == up.food.size()) {
-								System.out
-										.println("Same steps and food size. keep both");
+//								System.out
+//										.println("Same steps and food size. keep both");
 								fringe.add(up);
 							} else if (temp.food.size() < up.food.size()) {
-								System.out
-										.println("up has more pellets and same steps. replace with up");
+//								System.out
+//										.println("up has more pellets and same steps. replace with up");
+								if (current.history != ""
+										&& current.history
+												.charAt(current.history
+														.length() - 1) == 'S') {
+									if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+										fringe.remove(temp);
+										fringe.add(up);
+									}
+								}else{
+									fringe.remove(temp);
+									fringe.add(up);
+								}
+							}
+						} else if (temp.compareTo(up) == 1) {
+							if (current.history != ""
+									&& current.history.charAt(current.history
+											.length() - 1) == 'S') {
+								if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+									fringe.remove(temp);
+									fringe.add(up);
+								}
+							}else{
 								fringe.remove(temp);
 								fringe.add(up);
-
 							}
-						}
-						else if(temp.compareTo(up) == 1){
-							fringe.remove(temp);
-							fringe.add(up);
 						}
 					}
 				}
@@ -182,41 +213,68 @@ public class PacmanUCS implements PacAction {
 
 			// step down
 			if (current.location.y + 1 <= lengthY) {
-				System.out.println("\nstep down");
+//				System.out.println("\nstep down");
 				Node down = createNode(current.location.x,
 						current.location.y + 1, current, "S", grid);
 				// if node is valid location
 				if (down != null) {
 					if (!checkVisited(down, visited)
 							|| !checkFringe(down, fringe)) {
-						System.out.println("down node added to fringe");
-						fringe.add(down);
-						down.info();
+//						System.out.println("down node added to fringe");
+						if (current.history != ""
+								&& current.history.charAt(current.history
+										.length() - 1) == 'N') {
+							if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+								fringe.add(down);
+//								down.info();
+							}
+						}else{
+							fringe.add(down);
+						}
 					} else if (checkFringe(down, fringe)) {
 						// ignore path
-						System.out
-								.println("Not in visited, in fringe and down cost greater than current");
-						//temp is the node in the fringe that were comparing
+//						System.out
+//								.println("Not in visited, in fringe and down cost greater than current");
+						// temp is the node in the fringe that were comparing
 						Node temp = findLowerNode(down, fringe);
-						temp.info();
+//						temp.info();
 						// if they have the same num of step
 						if (temp.compareTo(down) == 0) {
 							if (temp.food.size() == down.food.size()) {
-								System.out
-										.println("Same steps and food size. keep both");
+//								System.out
+//										.println("Same steps and food size. keep both");
 								fringe.add(down);
 							} else if (temp.food.size() < down.food.size()) {
-								System.out
-										.println("down has more pellets and same steps. replace with down");
-								fringe.remove(temp);
-								fringe.add(down);
+//								System.out
+//										.println("down has more pellets and same steps. replace with down");
+								if (current.history != ""
+										&& current.history
+												.charAt(current.history
+														.length() - 1) == 'N') {
+									if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+										fringe.remove(temp);
+										fringe.add(down);
+									}
+								}else{
+									fringe.remove(temp);
+									fringe.add(down);
+								}
 
 							}
 						}
-						//node in fringe has more steps
-						else if(temp.compareTo(down) == 1){
-							fringe.remove(temp);
-							fringe.add(down);
+						// node in fringe has more steps
+						else if (temp.compareTo(down) == 1) {
+							if (current.history != ""
+									&& current.history.charAt(current.history
+											.length() - 1) == 'N') {
+								if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+									fringe.remove(temp);
+									fringe.add(down);
+								}
+							}else{
+								fringe.remove(temp);
+								fringe.add(down);
+							}
 						}
 					}
 
@@ -226,11 +284,160 @@ public class PacmanUCS implements PacAction {
 			if (current.location.x + 1 <= lengthX) {
 				Node right = createNode(current.location.x + 1,
 						current.location.y, current, "E", grid);
+				if (right != null) {
+					if (!checkVisited(right, visited)
+							|| !checkFringe(right, fringe)) {
+//						System.out.println("right node added to fringe");
+						if (current.history != ""
+								&& current.history.charAt(current.history
+										.length() - 1) == 'W') {
+							if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+//								right.info();
+								fringe.add(right);
+							}
+						}else{
+							fringe.add(right);
+						}
+					} else if (checkFringe(right, fringe)) {
+						// ignore path
+						System.out
+								.println("Not in visited, in fringe and right cost greater than current");
+						// temp is the node in the fringe that were comparing
+						Node temp = findLowerNode(right, fringe);
+//						temp.info();
+						// if they have the same num of step
+						if (temp.compareTo(right) == 0) {
+							if (temp.food.size() == right.food.size()) {
+//								System.out
+//										.println("Same steps and food size. keep both");
+								if (current.history != ""
+										&& current.history
+												.charAt(current.history
+														.length() - 1) == 'W') {
+									if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+//										right.info();
+										fringe.add(right);
+									}
+								}else{
+									fringe.add(right);
+								}
+							} else if (temp.food.size() < right.food.size()) {
+//								System.out
+//										.println("right has more pellets and same steps. replace with right");
+								if (current.history != ""
+										&& current.history
+												.charAt(current.history
+														.length() - 1) == 'W') {
+									if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+										fringe.remove(temp);
+										fringe.add(right);
+									}
+								}else{
+									fringe.remove(temp);
+									fringe.add(right);
+								}
+
+							}
+						}
+						// node in fringe has more steps
+						else if (temp.compareTo(right) == 1) {
+							if (current.history != ""
+									&& current.history.charAt(current.history
+											.length() - 1) == 'W') {
+								if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+									fringe.remove(temp);
+									fringe.add(right);
+								}
+							}else{
+								fringe.remove(temp);
+								fringe.add(right);
+							}
+						}
+					}
+
+				}
 			}
 
 			if (current.location.x - 1 >= 0) {
 				Node left = createNode(current.location.x - 1,
 						current.location.y, current, "W", grid);
+				if (left != null) {
+					if (!checkVisited(left, visited)
+							|| !checkFringe(left, fringe)) {
+//						System.out.println("left node added to fringe");
+						if (current.history != ""
+								&& current.history.charAt(current.history
+										.length() - 1) == 'E') {
+							if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+//								left.info();
+								fringe.add(left);
+							}
+						}else{
+							fringe.add(left);
+						}
+					} else if (checkFringe(left, fringe)) {
+						// ignore path
+//						System.out
+//								.println("Not in visited, in fringe and left cost greater than current");
+						// temp is the node in the fringe that were comparing
+						Node temp = findLowerNode(left, fringe);
+//						temp.info();
+						// if they have the same num of step
+						if (temp.compareTo(left) == 0) {
+							if (temp.food.size() == left.food.size()) {
+//								System.out
+//										.println("Same steps and food size. keep both");
+								if (current.history != ""
+										&& current.history
+												.charAt(current.history
+														.length() - 1) == 'E') {
+									if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+//										left.info();
+										fringe.add(left);
+									}
+								}else{
+									fringe.add(left);
+								}
+							} else if (temp.food.size() < left.food.size()) {
+//								System.out
+//										.println("left has more pellets and same steps. replace with left");
+								fringe.remove(temp);
+								if (current.history != ""
+										&& current.history
+												.charAt(current.history
+														.length() - 1) == 'E') {
+									if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+//										left.info();
+										fringe.remove(temp);
+
+										fringe.add(left);
+									}
+								}else{
+									fringe.remove(temp);
+									fringe.add(left);
+								}
+
+							}
+						}
+						// node in fringe has more steps
+						else if (temp.compareTo(left) == 1) {
+							if (current.history != ""
+									&& current.history.charAt(current.history
+											.length() - 1) == 'E') {
+								if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+									left.info();
+									fringe.remove(temp);
+
+									fringe.add(left);
+								}
+							}else{
+								fringe.remove(temp);
+								fringe.add(left);
+							}
+						}
+					}
+
+				}
 			}
 
 		}
