@@ -1,15 +1,18 @@
+
 /**
- * 
+ *
  * @author Kevin Anderson
- * @author Andrea Castillo
- * UCF
- * CAP4630 Fall 2015
- * 
+ * @author Andrea Castillo UCF CAP4630 Fall 2015
+ *
  */
 import java.awt.Point;
 import java.io.File;
 import java.util.*;
+
 import javax.swing.JFileChooser;
+
+import org.w3c.dom.Node;
+
 import pacsim.FoodCell;
 import pacsim.WallCell;
 import pacsim.PacAction;
@@ -21,295 +24,736 @@ import pacsim.PacmanCell;
 
 public class PacmanUCS implements PacAction {
 
-	private Point target;
-	private ArrayList<node> fringe;
-	private boolean pathfound;
-	private int numPellets;
-	public boolean debug;
-	private String path;
+    private Point target;
+    private int numPellets;
+    private String path;
+    public boolean debug = false;
 
-	public PacmanUCS(String fname) {
-		PacSim sim = new PacSim(fname);
-		sim.init(this);
-	}
+    public PacmanUCS(String fname) {
+        PacSim sim = new PacSim(fname);
+        sim.init(this);
+    }
 
-	public static void main(String[] args) {
+    public static void main(String[] args) {
 
-		new PacmanUCS(args[0]);
-	}
+        new PacmanUCS(args[0]);
+    }
 
-	@Override
-	public void init() {
-		target = null;
-		fringe = new ArrayList<node>();
-		path = null;
-		debug = true;
-		pathfound = false;
-		numPellets = 0;
-		System.out.println("init");
+    @Override
+    public void init() {
+        target = null;
+        path = null;
+        numPellets = 0;
+        System.out.println("init");
 
-	}
+    }
 
-	@Override
-	public PacFace action(Object state) {
+    @Override
+    public PacFace action(Object state) {
 
-		if (path == null) {
-			PacCell[][] grid = (PacCell[][]) state;
-			int i = 0, j = 0;
-			PacCell pc;
-			try {
-				for (;; i++) {
-					pc = grid[i][0];
-				}
+        if (path == null) {
+            PacCell[][] grid = (PacCell[][]) state;
+            int i = 0, j = 0;
+            PacCell pc;
+            try {
+                for (;; i++) {
+                    pc = grid[i][0];
+                }
 
-			} catch (Exception e) {
-				i--;
-				if (debug)
-					System.out.println("i = " + i);
-			}
+            } catch (Exception e) {
+                i--;
+            }
 
-			try {
-				for (;; j++) {
-					pc = grid[0][j];
-				}
+            try {
+                for (;; j++) {
+                    pc = grid[0][j];
+                }
 
-			} catch (Exception e) {
-				j--;
-				if (debug)
-					System.out.println("j = " + j);
-			}
+            } catch (Exception e) {
+                j--;
 
-			for (int k = 0; k < i; k++)
-				for (int m = 0; m < j; m++) {
-					if (grid[k][m] instanceof FoodCell)
-						numPellets++;
-				}
-			if (debug)
-				System.out.println("the board has " + numPellets + " pellets");
-			findPath(grid, i, j);
-			// need to return the first direction heres
-			path = "";
-		} else {
-			// step through path here
-		}
+            }
 
-		return PacFace.N;
-	}
+            for (int k = 0; k < i; k++) {
+                for (int m = 0; m < j; m++) {
+                    if (grid[k][m] instanceof FoodCell) {
+                        numPellets++;
+                    }
+                }
+            }
 
-	public void findPath(PacCell[][] grid, int lengthX, int lengthY) {
+            path = findPath(grid, i, j);
+        }
+        if (path != "" && path.length() > 0) {
+            char c = path.charAt(0);
+            path = path.substring(1, path.length());
 
-		// get starting position of pacman
-		PacmanCell pacman = PacUtils.findPacman(grid);
+            switch (c) {
+                case 'N':
+                    return PacFace.N;
+                case 'S':
+                    return PacFace.S;
+                case 'W':
+                    return PacFace.W;
+                case 'E':
+                    return PacFace.E;
 
-		// initialize fringe with starting point
-		ArrayList<node> fringe = new ArrayList<node>();
-		fringe.add(new node(pacman.getX(), pacman.getY(), -1));
-		int count = 0;
+            }
+        }
 
-		while (!pathfound) {
-			count++;
-			if (count == 100)
-				break;
-			System.out.println("fringe size before expand:" + fringe.size());
-			fringe = expand(fringe, grid, lengthX, lengthY);
-			System.out.println("fringe size after expand:" + fringe.size());
-			removePointlesspaths(fringe);
-			System.out.println("fringe size after removing pointless paths:"
-					+ fringe.size());
-			// pathfound = true;
-		}
+        return PacFace.N;
+    }
 
-	}
+    public String findPath(PacCell[][] grid, int lengthX, int lengthY) {
+        // find starting point
+        PacmanCell pacman = PacUtils.findPacman(grid);
+        // starting node
+        Node start = new Node(pacman.getX(), pacman.getY(), -1);
+        // create fringe
+        // visited
+        ArrayList<Node> visited = new ArrayList<Node>();
+        PriorityQueue<Node> fringe = new PriorityQueue<Node>();
 
-	public void removePointlesspaths(ArrayList<node> fringe) {
-		if (fringe.isEmpty())
-			return;
+        fringe.add(start);
+        int count = 0;
 
-		for (int i = 0; i < fringe.size(); i++) {
-			if (fringe.get(i).history.contains("WEWE")
-					|| fringe.get(i).history.contains("EWEW")
-					|| fringe.get(i).history.contains("NSNS")
-					|| fringe.get(i).history.contains("SNSN")) {
-				fringe.remove(i);
-				i--;
-			}
-		}
-	}
+        while (!fringe.isEmpty()) {
+            if (debug) {
+                System.out.println("count:" + count);
+            }
+//            if (count >= 60) {
+//                return "";
+//            }
 
-	public ArrayList<node> expand(ArrayList<node> fringe, PacCell[][] grid,
-			int lengthX, int lengthY) {
+            if (fringe.isEmpty()) {
+                return null; // will crash
+            }
+            // get current node
+//			System.out.println("\npop fringe");
+            Node current = fringe.remove();
+            if (debug) {
+                System.out.print("Current node info ");
+                current.info();
+            }
+            count++;
+            if (isGoal(current, numPellets)) {
+                System.out.println("count:" + count);
 
-		// remove first node and repalce with 1 from a step in each direction
-		node n = fringe.remove(0);
+                System.out.println("Goal path: " + current.history);
+                return current.history;
+            }
 
-		// step left
-		if (n.x - 1 >= 0) { // check if step is within bounds
-			node left = new node(n.x - 1, n.y, n.steps);
-			left.addToHistory(n.history + "W");// update history
-			left.eaten = n.eaten; // copy over history
-			left.food = n.food; // copy over eaten pellets
-			if (!(grid[left.x][left.y] instanceof WallCell)) {
-				if (grid[left.x][left.y] instanceof FoodCell) {
-					if (foundNewPellet(left)) {
-						left.food.add(new pellet(left.x, left.y));
-						++left.eaten;
-						System.out.println(left.eaten);
-					}
-					if (left.eaten == numPellets) {
-						pathfound = true;
-						System.out.println("path found is: " + left.history);
-					}
-				}
-				left.info();
-				System.out.println("current history is: " + left.history);
-				fringe.add(left);
-			}
-		}
+            // add current node to visited
+            addToSet(visited, current);
+			// printFringe(fringe);
 
-		// step right
-		if (n.x + 1 <= lengthX) {// check if step is within bounds
-			node right = new node(n.x + 1, n.y, n.steps);
-			right.addToHistory(n.history + "E");
-			right.eaten = n.eaten;
-			right.food = n.food;
-			if (!(grid[right.x][right.y] instanceof WallCell)) {
-				if (grid[right.x][right.y] instanceof FoodCell) {
-					if (foundNewPellet(right)) {
-						right.food.add(new pellet(right.x, right.y));
-						++right.eaten;
-						System.out.println(right.eaten);
-					}
-					if (right.eaten == numPellets) {
-						pathfound = true;
-						System.out.println("path found is: " + right.history);
-					}
-				}
-				right.info();
-				System.out.println("current history is: " + right.history);
-				fringe.add(right);
-			}
-		}
+            // create possible nodes
+            // step up
+            if (current.location.y - 1 >= 0) {
+                if (debug) {
+                    System.out.println("\nstep up");
+                }
+                Node up = createNode(current.location.x,
+                        current.location.y - 1, current, "N", grid);
+                // if node is valid location
+                if (up != null) {
 
-		// step up
-		if (n.y - 1 >= 0) {// check if step is within bounds
-			node up = new node(n.x, n.y - 1, n.steps);
-			up.addToHistory(n.history + "N");
-			up.eaten = n.eaten;
-			up.food = n.food;
-			if (!(grid[up.x][up.y] instanceof WallCell)) {
-				if (grid[up.x][up.y] instanceof FoodCell) {
-					if (foundNewPellet(up)) {
-						up.food.add(new pellet(up.x, up.y));
-						++up.eaten;
-						System.out.println(up.eaten);
-					}
-					if (up.eaten == numPellets) {
-						pathfound = true;
-						System.out.println("path found is: " + up.history);
-					}
+                    if (!checkVisited(up, visited) || !checkFringe(up, fringe)) {
+                        if (debug) {
+                            System.out.println("up node added to fringe");
+                        }
+                        if (current.history != ""
+                                && current.history.charAt(current.history
+                                        .length() - 1) == 'S') {
+                            if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                fringe.add(up);
+                                if (debug) {
+                                    up.info();
+                                }
+                            }
+                        } else {
+                            fringe.add(up);
+                            if (debug) {
+                                up.info();
+                            }
+                        }
 
-				}
-				up.info();
-				System.out.println("current history is: " + up.history);
-				fringe.add(up);
-			}
-		}
-
-		// step down
-		if (n.y + 1 <= lengthY) {// check if step is within bounds
-			node down = new node(n.x, n.y + 1, n.steps);
-			down.addToHistory(n.history + "S");
-			down.eaten = n.eaten;
-			down.food = n.food;
-			if (!(grid[down.x][down.y] instanceof WallCell)) {
-				if (grid[down.x][down.y] instanceof FoodCell) {
-					if (foundNewPellet(down)) {
-						down.food.add(new pellet(down.x, down.y));
-						++down.eaten;
-						System.out.println(down.eaten);
-					}
-					if (down.eaten == numPellets) {
-						pathfound = true;
-						System.out.println("path found is: " + down.history);
-					}
-
-				}
-				down.info();
-				System.out.println("current history is: " + down.history);
-				// add to end of fringe
-				fringe.add(down);
-			}
-		}
-
-		return fringe;
-	}
-
-	// returns true is this a new pellet added to node
-	public boolean foundNewPellet(node n) {
-		System.out.println("entered found new pellet");
-		System.out.println(n.food.isEmpty());
-//		for (int j = 0; j < n.food.size(); j++) {
-		System.out.println(n.food.size());
+                    } else if (checkFringe(up, fringe)) {
+                        Node temp = findLowerNode(up, fringe);
+//                        int counterUp = numOfOccurance(up);
+//                        int countTemp = numOfOccurance(temp);
+//                        if (countTemp < counterUp) {
 //
-//		}
-		if (n.food.size() == 0) {
-			System.out.println("food is empty");
-			return true;
-		}
+//                        } else if (countTemp > counterUp) {
+                        if (up.steps < temp.steps) {
+                            System.out.println(" < ");
+                            if (current.history != "" && current.history.charAt(current.history.length() - 1) == 'S') {
+                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                    fringe.remove(temp);
+                                    fringe.add(up);
+                                }
+                            } else {
+                                fringe.remove(temp);
+                                fringe.add(up);
+                            }
+                        } //                        Node temp = findLowerNode(up, fringe);
+                        //                        if (up.food.size() == temp.food.size()) {
+                        //                            if (debug) {
+                        //                                System.out.println(" food equal ");
+                        //                                temp.info();
+                        //                            }
+                        ////                            if (current.history != "" && current.history.charAt(current.history.length() - 1) == 'S') {
+                        ////                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                        ////                                    fringe.remove(temp);
+                        ////                                    fringe.add(up);
+                        ////                                }
+                        ////                            } else {
+                        ////                                fringe.remove(temp);
+                        ////                                fringe.add(up);
+                        ////                            }
+                        //                        } 
+                        else if (up.steps == temp.steps) {
+                            System.out.println(" == ");
 
-		for (int i = 0; i < n.food.size(); i++) {
-			System.out.println("searching for new pellets");
-			if (n.x == n.food.get(i).x && n.y == n.food.get(i).y) {
-				System.out.println("found a match at " + n.x + "," + n.y);
-				return false;
-			}
-		}
-		System.out.println("no match found");
-		return true;
-	}
+                            if (current.history != ""
+                                    && current.history.charAt(current.history
+                                            .length() - 1) == 'S') {
+                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                    fringe.add(up);
+                                    if (debug) {
+                                        up.info();
+                                    }
+                                }
+                            } else {
+                                fringe.add(up);
+                                if (debug) {
+                                    up.info();
+                                }
+                            }
 
-	/**
-	 * this class will be on the fringe. it keeps track of the steps taken on
-	 * each possible path. Also tracks how many pellets have been eaten
-	 * 
-	 */
-	class node {
-		int steps;
-		int eaten;
-		int x;
-		int y;
-		ArrayList<pellet> food;
-		String history;
+                        }
+                    }
+                }
+            }
 
-		public node(int x, int y, int steps) {
-			this.eaten = 0;
-			this.steps = steps + 1;
-			this.x = x;
-			this.y = y;
-			this.food = new ArrayList<pellet>();
-			this.history = "";
-		}
+            // step down
+            if (current.location.y + 1 <= lengthY) {
+                if (debug) {
+                    System.out.println("\nstep down");
+                }
+                Node down = createNode(current.location.x,
+                        current.location.y + 1, current, "S", grid);
+                // if node is valid location
+                if (down != null) {
+                    if (!checkVisited(down, visited) || !checkFringe(down, fringe)) {
+//						System.out.println("down node added to fringe");
+                        if (current.history != ""
+                                && current.history.charAt(current.history
+                                        .length() - 1) == 'N') {
+                            if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                fringe.add(down);
+                                if (debug) {
+                                    down.info();
+                                }
+                            }
+                        } else {
+                            if (debug) {
+                                down.info();
+                            }
+                            fringe.add(down);
+                        }
+                    } else if (checkFringe(down, fringe)) {
+                        Node temp = findLowerNode(down, fringe);
+//                        int counterDown = numOfOccurance(down);
+//                        int countTemp = numOfOccurance(temp);
+//                        if (countTemp < counterDown) {
+//
+//                        } else if (countTemp > counterDown) {
+                        if (down.steps < temp.steps) {
+                            System.out.println(" < ");
 
-		public void addToHistory(String s) {
-			this.history += s;
-		}
+                            if (current.history != "" && current.history.charAt(current.history.length() - 1) == 'N') {
+                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                    fringe.remove(temp);
+                                    fringe.add(down);
+                                }
+                            } else {
+                                fringe.remove(temp);
+                                fringe.add(down);
+                            }
+                        } //                        Node temp = findLowerNode(down, fringe);
+                        //                        if (down.food.size() == temp.food.size()) {
+                        //                            if (debug) {
+                        //                                System.out.println(" food equal ");
+                        //                                temp.info();
+                        //                            }
+                        ////                            if (current.history != "" && current.history.charAt(current.history.length() - 1) == 'N') {
+                        ////                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                        ////                                    fringe.remove(temp);
+                        ////                                    fringe.add(down);
+                        ////                                }
+                        ////                            } else {
+                        ////                                fringe.remove(temp);
+                        ////                                fringe.add(down);
+                        ////                            }
+                        //                        } 
+                        else if (down.steps == temp.steps) {
+                            System.out.println(" == ");
 
-		public void info() {
-			System.out.println("x:" + this.x + " y:" + this.y + " steps:"
-					+ this.steps + " eaten:" + this.eaten);
-		}
-	}
+                            if (current.history != ""
+                                    && current.history.charAt(current.history
+                                            .length() - 1) == 'N') {
+                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                    fringe.add(down);
+                                    if (debug) {
+                                        down.info();
+                                    }
+                                }
+                            } else {
+                                if (debug) {
+                                    down.info();
+                                }
+                                fringe.add(down);
+                            }
+                        }
+                    }
+                }
+            }
 
-	/**
-	 * class for storing what pellets have been seen by a path
-	 */
-	class pellet {
-		int x;
-		int y;
+            if (current.location.x + 1 <= lengthX) {
+                if (debug) {
+                    System.out.println("STEP right E");
+                }
+                Node right = createNode(current.location.x + 1,
+                        current.location.y, current, "E", grid);
+                if (right != null) {
+                    if (!checkVisited(right, visited) || !checkFringe(right, fringe)) {
+//						System.out.println("right node added to fringe");
+                        if (current.history != ""
+                                && current.history.charAt(current.history
+                                        .length() - 1) == 'W') {
+                            if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                if (debug) {
+                                    right.info();
+                                }
+                                fringe.add(right);
+                            }
+                        } else {
+                            fringe.add(right);
+                            if (debug) {
+                                right.info();
+                            }
+                        }
+                    } else if (checkFringe(right, fringe)) {
 
-		public pellet(int x, int y) {
-			this.x = x;
-			this.y = y;
-		}
-	}
+                        Node temp = findLowerNode(right, fringe);
+//                        int counterRight = numOfOccurance(right);
+//                        int countTemp = numOfOccurance(temp);
+//                        if (countTemp < counterRight) {
+//
+//                        } else if (countTemp > counterRight && right.food.size() > temp.f) {
+                        if (right.steps < temp.steps) {
+                            System.out.println(" < ");
+
+                            if (current.history != "" && current.history.charAt(current.history.length() - 1) == 'W') {
+                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                    fringe.remove(temp);
+                                    fringe.add(right);
+                                }
+                            } else {
+                                fringe.remove(temp);
+                                fringe.add(right);
+                            }
+                        } //                        if (right.food.size() == temp.food.size()) {
+                        //                            if (debug) {
+                        //                                System.out.println(" food equal ");
+                        //                                temp.info();
+                        //                            }
+                        ////                            if (current.history != "" && current.history.charAt(current.history.length() - 1) == 'W') {
+                        ////                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                        ////                                    fringe.remove(temp);
+                        ////                                    fringe.add(right);
+                        ////                                }
+                        ////                            } else {
+                        ////                                fringe.remove(temp);
+                        ////                                fringe.add(right);
+                        ////                            }
+                        else if (right.steps == temp.steps) {
+                            System.out.println(" == ");
+
+                            if (current.history != ""
+                                    && current.history.charAt(current.history
+                                            .length() - 1) == 'W') {
+                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                    if (debug) {
+                                        right.info();
+                                    }
+                                    fringe.add(right);
+                                }
+                            } else {
+                                fringe.add(right);
+                                if (debug) {
+                                    right.info();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (current.location.x - 1 >= 0) {
+                if (debug) {
+                    System.out.println("step left W");
+                }
+                Node left = createNode(current.location.x - 1,
+                        current.location.y, current, "W", grid);
+                if (left != null) {
+                    if (!checkVisited(left, visited) || !checkFringe(left, fringe)) {
+//						System.out.println("left node added to fringe");
+                        if (current.history != ""
+                                && current.history.charAt(current.history
+                                        .length() - 1) == 'E') {
+                            if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                if (debug) {
+                                    left.info();
+                                }
+                                fringe.add(left);
+                            }
+                        } else {
+                            if (debug) {
+                                left.info();
+                            }
+                            fringe.add(left);
+                        }
+                    } else if (checkFringe(left, fringe)) {
+
+                        Node temp = findLowerNode(left, fringe);
+//                        int counterLeft = numOfOccurance(left);
+//                        int countTemp = numOfOccurance(temp);
+//                        if (countTemp < counterLeft) {
+//
+//                        } else if (countTemp > counterLeft) {
+                        if (left.steps < temp.steps) {
+                            System.out.println(" < ");
+
+                            if (current.history != "" && current.history.charAt(current.history.length() - 1) == 'E') {
+                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                    fringe.remove(temp);
+                                    fringe.add(left);
+                                }
+                            } else {
+                                fringe.remove(temp);
+                                fringe.add(left);
+                            }
+                        } //                        if (left.food.size() == temp.food.size()) {
+                        //                            if (debug) {
+                        //                                System.out.println(" food equal ");
+                        //                                temp.info();
+                        //                            }
+                        ////                            if (current.history != "" && current.history.charAt(current.history.length() - 1) == 'E') {
+                        ////                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                        ////                                    fringe.remove(temp);
+                        ////                                    fringe.add(left);
+                        ////                                }
+                        ////                            } else {
+                        ////                                fringe.remove(temp);
+                        ////                                fringe.add(left);
+                        ////                            }
+                        //                        }
+                        else if (left.steps == temp.steps) {
+                            System.out.println(" ==");
+
+                            if (current.history != ""
+                                    && current.history.charAt(current.history
+                                            .length() - 1) == 'E') {
+                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                    if (debug) {
+                                        left.info();
+                                    }
+                                    fringe.add(left);
+                                }
+                            } else {
+                                if (debug) {
+                                    left.info();
+                                }
+                                fringe.add(left);
+                            }
+                        }
+                    }
+
+                }
+            }
+
+        }
+        if (fringe.isEmpty()) {
+            System.out.println("fringe is empty");
+        }
+        return "";
+    }
+
+    public int numOfOccurance(Node temp) {
+        int tempCounter = 0;
+        for (Location n : temp.locationHistory) {
+            if (n.x == temp.location.x
+                    && n.y == temp.location.y) {
+                tempCounter++;
+            }
+        }
+
+        return tempCounter;
+    }
+
+    /**
+     * finds matching node within fringe
+     */
+    public Node findLowerNode(Node current, PriorityQueue<Node> fringe) {
+
+//        Object[] list = fringe.toArray();
+//        if (list != null) {
+//            for (int i = 0; i < list.length; i++) {
+//                Node n = (Node) list[i];
+//                if (n.location.compareTo(current.location) == 0) {
+//                    return n;
+//
+//                }
+//            }
+//        }
+        for (Node n : fringe) {
+            if (n.location.compareTo(current.location) == 0) {
+//                System.out.println(n.location.x + " " + n.location.y);
+                return n;
+
+            }
+        }
+        return null;
+    }
+
+    /**
+     * adds a node to the set if it doesn't already exists based only on
+     * location of node
+     */
+    public void addToSet(ArrayList<Node> visited, Node node) {
+        boolean exists = false;
+
+        for (Node n : visited) {
+            if (n.location.x == node.location.x
+                    && n.location.y == node.location.y) {
+                return;
+            }
+        }
+        visited.add(node);
+    }
+
+    public void printFringe(PriorityQueue<Node> fringe) {
+        // System.out.println("Nodes in fringe");
+        Object[] temp = fringe.toArray();
+        for (int i = 0; i < temp.length; i++) {
+            Node n = (Node) temp[i];
+            n.info();
+        }
+    }
+
+    public void printVisited(Set<Node> visited) {
+        // System.out.println("Nodes in visited");
+        for (Node n : visited) {
+            n.info();
+        }
+
+    }
+
+    public boolean isGoal(Node current, int i) {
+        if (current.food.size() == i) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * creates a new node. updates steps, history, historylocations and checks
+     * if location is a pellet
+     */
+    public Node createNode(int x, int y, Node previous, String direction,
+            PacCell[][] grid) {
+        int index = 0;
+        Node node = new Node(x, y, previous.steps);
+        for (Location temp : previous.locationHistory) {
+            node.locationHistory.add(new Location(temp.x, temp.y));
+        }
+        node.addToHistory(previous.history + direction, x, y);
+
+        for (Location temp : previous.food) {
+            node.food.add(new Location(temp.x, temp.y));
+        }
+
+        // check for wall
+        if (!(grid[x][y] instanceof WallCell)) {
+            // check for food
+            if (grid[x][y] instanceof FoodCell) {
+                node.food.add(node.location);
+                if (node.food.isEmpty()) {
+                    if (debug) {
+                        System.out.println("food is empty");
+                    }
+                }
+
+            }
+        } else {
+            return null;
+        }
+
+        for (int i = 0; i < node.locationHistory.size(); i++) {
+            if (node.locationHistory.get(i).x == previous.location.x
+                    && node.locationHistory.get(i).y == previous.location.y) {
+                i++;
+                if (i < node.locationHistory.size() && (node.locationHistory.get(i).x == x
+                        && node.locationHistory.get(i).y == y)) {
+                    index++;
+
+                }
+            }
+        }
+        if (index >= 2) {
+            if (debug) {
+                System.out.println("SUBPATH");
+            }
+            return null;
+        }
+        return node;
+    }
+
+    /**
+     * checks if a node exists within the fringe
+     */
+    public boolean checkFringe(Node current, PriorityQueue<Node> fringe) {
+        if (debug) {
+            System.out.println("checking fringe");
+        }
+        if (fringe.isEmpty()) {
+            if (debug) {
+                System.out.println("fringe is empty");
+            }
+            return false;
+        }
+
+        Object[] list = fringe.toArray();
+        Node n;
+
+        for (int i = 0; i < list.length; i++) {
+            n = (Node) list[i];
+            if (n.location.x == current.location.x
+                    && n.location.y == current.location.y) {
+                if (debug) {
+                    System.out.println("matching location found in fringe");
+                }
+                return true;
+            }
+        }
+        if (debug) {
+            System.out.println("not in fringe");
+        }
+        return false;
+    }
+
+    /**
+     * checks if a node exists within visited
+     */
+    public boolean checkVisited(Node current, ArrayList<Node> visited) {
+        if (debug) {
+            System.out.println("checking visited");
+        }
+        for (Node n : visited) {
+            if (n.location.x == current.location.x
+                    && n.location.y == current.location.y) {
+                if (debug) {
+                    System.out.println("Found match in visited");
+                }
+                return true;
+            }
+        }
+        if (debug) {
+            System.out.println("not in visited");
+        }
+        return false;
+    }
+
+    /**
+     * this class will be on the fringe. it keeps track of the steps taken on
+     * each possible path. Also tracks how many pellets have been eaten
+     *
+     * updated node based on changes we talked about
+     */
+    class Node implements Comparable<Node> {
+
+        int steps;
+        Location location;
+        Set<Location> food;
+        String history;
+        ArrayList<Location> locationHistory;
+
+        public Node(int x, int y, int steps) {
+            this.steps = steps + 1;
+            this.location = new Location(x, y);
+            this.food = new TreeSet<Location>();
+            this.history = "";
+            this.locationHistory = new ArrayList<Location>();
+
+        }
+
+        public void addToHistory(String s, int x, int y) {
+            this.locationHistory.add(new Location(x, y));
+            this.history = s;
+        }
+
+        @Override
+        public int compareTo(Node other) {
+            // if at the same location
+            if (this.steps == other.steps) {
+                return 0;
+            }
+            if (this.steps < other.steps) {
+                return -1;
+            } else {
+                return 1;
+            }
+
+        }
+
+        public void info() {
+            System.out.println("x:" + this.location.x + " y:" + this.location.y
+                    + " steps:" + this.steps + " food size:" + this.food.size()
+                    + " history:" + this.history);
+            for (Location x : this.locationHistory) {
+                System.out.print("(" + x.x + "," + x.y + ") ");
+            }
+            System.out.println();
+        }
+
+    }
+
+    /**
+     * class for storing position
+     */
+    class Location implements Comparable<Location> {
+
+        int x;
+        int y;
+
+        public Location(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        public void set(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        @Override
+        public int compareTo(Location other) {
+            if (this.x == other.x && this.y == other.y) {
+                return 0;
+            }
+            return -1;
+        }
+    }
 }
