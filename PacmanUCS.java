@@ -1,10 +1,9 @@
+
 /**
- * 
+ *
  * @author Kevin Anderson
- * @author Andrea Castillo
- * UCF
- * CAP4630 Fall 2015
- * 
+ * @author Andrea Castillo UCF CAP4630 Fall 2015
+ *
  */
 import java.awt.Point;
 import java.io.File;
@@ -25,891 +24,738 @@ import pacsim.PacmanCell;
 
 public class PacmanUCS implements PacAction {
 
-	private Point target;
-	private int numPellets;
-	private String path;
+    private Point target;
+    private int numPellets;
+    private String path;
+    public boolean debug = false;
 
-	public PacmanUCS(String fname) {
-		PacSim sim = new PacSim(fname);
-		sim.init(this);
-	}
+    public PacmanUCS(String fname) {
+        PacSim sim = new PacSim(fname);
+        sim.init(this);
+    }
 
-	public static void main(String[] args) {
+    public static void main(String[] args) {
 
-		new PacmanUCS(args[0]);
-	}
+        new PacmanUCS(args[0]);
+    }
 
-	@Override
-	public void init() {
-		target = null;
-		path = null;
-		numPellets = 0;
-		System.out.println("init");
+    @Override
+    public void init() {
+        target = null;
+        path = null;
+        numPellets = 0;
+        
 
-	}
+    }
 
-	@Override
-	public PacFace action(Object state) {
+    @Override
+    public PacFace action(Object state) {
+    	PacCell[][] grid = (PacCell[][]) state;
+        if (path == null) {
+            
+            int i = 0, j = 0;
+            PacCell pc;
+            try {
+                for (;; i++) {
+                    pc = grid[i][0];
+                }
 
-		if (path == null) {
-			PacCell[][] grid = (PacCell[][]) state;
-			int i = 0, j = 0;
-			PacCell pc;
-			try {
-				for (;; i++) {
-					pc = grid[i][0];
-				}
+            } catch (Exception e) {
+                i--;
+            }
 
-			} catch (Exception e) {
-				i--;
-			}
+            try {
+                for (;; j++) {
+                    pc = grid[0][j];
+                }
 
-			try {
-				for (;; j++) {
-					pc = grid[0][j];
-				}
+            } catch (Exception e) {
+                j--;
 
-			} catch (Exception e) {
-				j--;
+            }
 
-			}
+            for (int k = 0; k < i; k++) {
+                for (int m = 0; m < j; m++) {
+                    if (grid[k][m] instanceof FoodCell) {
+                        numPellets++;
+                    }
+                }
+            }
 
-			for (int k = 0; k < i; k++)
-				for (int m = 0; m < j; m++) {
-					if (grid[k][m] instanceof FoodCell)
-						numPellets++;
-				}
+            path = findPath(grid, i, j);
+        }
+        
+        if (path != "" && path.length() > 0) {
+            char c = path.charAt(0);
+            path = path.substring(1, path.length());
+            PacmanCell pacman = PacUtils.findPacman(grid);
+            System.out.println("(" + pacman.getX() +"," +pacman.getY() +")");
 
-			path = findPath(grid, i, j);
-		}
-		if (path != "" && path.length() > 0) {
-			char c = path.charAt(0);
-			path = path.substring(1, path.length());
+            switch (c) {
+                case 'N':
+                    return PacFace.N;
+                case 'S':
+                    return PacFace.S;
+                case 'W':
+                    return PacFace.W;
+                case 'E':
+                    return PacFace.E;
 
-			switch (c) {
-			case 'N':
-				return PacFace.N;
-			case 'S':
-				return PacFace.S;
-			case 'W':
-				return PacFace.W;
-			case 'E':
-				return PacFace.E;
+            }
+        }
 
-			}
-		}
+        return PacFace.N;
+    }
 
-		return PacFace.N;
-	}
+    public String findPath(PacCell[][] grid, int lengthX, int lengthY) {
+        // find starting point
+        PacmanCell pacman = PacUtils.findPacman(grid);
+        // starting node
+        Node start = new Node(pacman.getX(), pacman.getY(), -1);
+        // create fringe
+        // visited
+        ArrayList<Node> visited = new ArrayList<Node>();
+        PriorityQueue<Node> fringe = new PriorityQueue<Node>();
 
-	public String findPath(PacCell[][] grid, int lengthX, int lengthY) {
-		// find starting point
-		PacmanCell pacman = PacUtils.findPacman(grid);
-		// starting node
-		Node start = new Node(pacman.getX(), pacman.getY(), -1);
-		// create fringe
-		PriorityQueue<Node> fringe = new PriorityQueue<Node>();
-		// visited
-		ArrayList<Node> visited = new ArrayList<Node>();
-		fringe.add(start);
-		int count = 0;
+        fringe.add(start);
+        int count = 0;
 
-		while (!fringe.isEmpty()) {
-			System.out.println("count:" + count);
-			// if (count >= 20)
-			// return "";
+        while (!fringe.isEmpty()) {
+            if (debug) {
+                
+            }
+            if (count % 1000 == 0) {
+            	System.out.println("Node expanded: " + count);
+            }
 
-			if (fringe.isEmpty()) {
-				return null; // will crash
-			}
-			// get current node
+            if (fringe.isEmpty()) {
+                return null; // will crash
+            }
+            // get current node
 //			System.out.println("\npop fringe");
-			Node current = fringe.remove();
-//			System.out.print("Current node info ");
-//			current.info();
-			count++;
-			if (isGoal(current, numPellets)) {
-				System.out.println("Goal path: " + current.history);
-				return current.history;
-			}
+            Node current = fringe.remove();
+            if (debug) {
+                System.out.print("Current node info ");
+                current.info();
+            }
+            count++;
+            if (isGoal(current, numPellets)) {
+                System.out.println("\nNode expanded: " + count);
+                //System.out.println("Goal path: " + current.history);
+                System.out.println("\nSolution path:");
+                return current.history;
+            }
 
-			// add current node to visited
-			addToSet(visited, current);
+            // add current node to visited
+            addToSet(visited, current);
 			// printFringe(fringe);
 
-			// create possible nodes
+            // create possible nodes
+            // step up
+            if (current.location.y - 1 >= 0) {
+                if (debug) {
+                    System.out.println("\nstep up");
+                }
+                Node up = createNode(current.location.x,
+                        current.location.y - 1, current, "N", grid);
+                // if node is valid location
+                if (up != null) {
 
-			// step up
-			if (current.location.y - 1 >= 0) {
-//				System.out.println("\nstep up");
-				Node up = createNode(current.location.x,
-						current.location.y - 1, current, "N", grid);
-				// if node is valid location
-				if (up != null) {
+                    if (!checkVisited(up, visited) || !checkFringe(up, fringe)) {
+                        if (debug) {
+                            System.out.println("up node added to fringe");
+                        }
+                        if (current.history != ""
+                                && current.history.charAt(current.history
+                                        .length() - 1) == 'S') {
+                            if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                fringe.add(up);
+                                if (debug) {
+                                    up.info();
+                                }
+                            }
+                        } else {
+                            fringe.add(up);
+                            if (debug) {
+                                up.info();
+                            }
+                        }
 
-					if (!checkVisited(up, visited) || !checkFringe(up, fringe)) {
+                    } else if (checkFringe(up, fringe)) {
+                        Node temp = findLowerNode(up, fringe);
+//                        int counterUp = numOfOccurance(up);
+//                        int countTemp = numOfOccurance(temp);
+//                        if (countTemp < counterUp) {
+//
+//                        } else if (countTemp > counterUp) {
+                        if (up.steps < temp.steps) {
+                            System.out.println(" > ");
+                            if (current.history != "" && current.history.charAt(current.history.length() - 1) == 'S') {
+                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                    fringe.remove(temp);
+                                    fringe.add(up);
+                                }
+                            } else {
+                                fringe.remove(temp);
+                                fringe.add(up);
+                            }
+                        } //                        Node temp = findLowerNode(up, fringe);
+                        //                        if (up.food.size() == temp.food.size()) {
+                        //                            if (debug) {
+                        //                                System.out.println(" food equal ");
+                        //                                temp.info();
+                        //                            }
+                        ////                            if (current.history != "" && current.history.charAt(current.history.length() - 1) == 'S') {
+                        ////                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                        ////                                    fringe.remove(temp);
+                        ////                                    fringe.add(up);
+                        ////                                }
+                        ////                            } else {
+                        ////                                fringe.remove(temp);
+                        ////                                fringe.add(up);
+                        ////                            }
+                        //                        } 
+                        else if (up.steps == temp.steps) {
 
-//						System.out.println("up node added to fringe");
-						if (current.history != ""
-								&& current.history.charAt(current.history
-										.length() - 1) == 'S') {
-							if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-								System.out.println(" 1 up node added to fringe");
+                            if (current.history != ""
+                                    && current.history.charAt(current.history
+                                            .length() - 1) == 'S') {
+                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                    fringe.add(up);
+                                    if (debug) {
+                                        up.info();
+                                    }
+                                }
+                            } else {
+                                fringe.add(up);
+                                if (debug) {
+                                    up.info();
+                                }
+                            }
 
-								fringe.add(up);
-								System.out.println(" 2  up node added to fringe");
+                        }
+                    }
+                }
+            }
 
-							}
-						}else{
-							fringe.add(up);
-
-						}
-//						up.info();
-
-					} else if (checkFringe(up, fringe)) {
-						// ignore path
-//						System.out
-//								.println("Not in visited, in fringe and up cost greater than current");
-						Node temp = findLowerNode(up, fringe);
-
-						// if they have the same num of step
-						if (temp.compareTo(up) == 0) {
-							if (temp.food.size() == up.food.size()) {
-//								System.out
-//										.println("Same steps and food size. keep both");
-								fringe.add(up);
-							} else if (temp.food.size() < up.food.size()) {
-//								System.out
-//										.println("up has more pellets and same steps. replace with up");
-								if (current.history != ""
-										&& current.history
-												.charAt(current.history
-														.length() - 1) == 'S') {
-									if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-										fringe.remove(temp);
-										fringe.add(up);
-									}
-								}else{
-									fringe.remove(temp);
-									fringe.add(up);
-								}
-							}
-						} else if (temp.compareTo(up) == 1) {
-							if (current.history != ""
-									&& current.history.charAt(current.history
-											.length() - 1) == 'S') {
-								if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-									fringe.remove(temp);
-									fringe.add(up);
-								}
-							}else{
-								fringe.remove(temp);
-								fringe.add(up);
-							}
-						}
-					}
-				}
-			}
-
-			// step down
-			if (current.location.y + 1 <= lengthY) {
-//				System.out.println("\nstep down");
-				Node down = createNode(current.location.x,
-						current.location.y + 1, current, "S", grid);
-				// if node is valid location
-				if (down != null) {
-					if (!checkVisited(down, visited)
-							|| !checkFringe(down, fringe)) {
+            // step down
+            if (current.location.y + 1 <= lengthY) {
+                if (debug) {
+                    System.out.println("\nstep down");
+                }
+                Node down = createNode(current.location.x,
+                        current.location.y + 1, current, "S", grid);
+                // if node is valid location
+                if (down != null) {
+                    if (!checkVisited(down, visited) || !checkFringe(down, fringe)) {
 //						System.out.println("down node added to fringe");
-						if (current.history != ""
-								&& current.history.charAt(current.history
-										.length() - 1) == 'N') {
-							if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-								fringe.add(down);
-//								down.info();
-							}
-						}else{
-							fringe.add(down);
-						}
-					} else if (checkFringe(down, fringe)) {
-						// ignore path
-//						System.out
-//								.println("Not in visited, in fringe and down cost greater than current");
-						// temp is the node in the fringe that were comparing
-						Node temp = findLowerNode(down, fringe);
-//						temp.info();
-						// if they have the same num of step
-						if (temp.compareTo(down) == 0) {
-							if (temp.food.size() == down.food.size()) {
-//								System.out
-//										.println("Same steps and food size. keep both");
-								fringe.add(down);
-							} else if (temp.food.size() < down.food.size()) {
-//								System.out
-//										.println("down has more pellets and same steps. replace with down");
-								if (current.history != ""
-										&& current.history
-												.charAt(current.history
-														.length() - 1) == 'N') {
-									if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-										fringe.remove(temp);
-										fringe.add(down);
-									}
-								}else{
-									fringe.remove(temp);
-									fringe.add(down);
-								}
+                        if (current.history != ""
+                                && current.history.charAt(current.history
+                                        .length() - 1) == 'N') {
+                            if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                fringe.add(down);
+                                if (debug) {
+                                    down.info();
+                                }
+                            }
+                        } else {
+                            if (debug) {
+                                down.info();
+                            }
+                            fringe.add(down);
+                        }
+                    } else if (checkFringe(down, fringe)) {
+                        Node temp = findLowerNode(down, fringe);
+//                        int counterDown = numOfOccurance(down);
+//                        int countTemp = numOfOccurance(temp);
+//                        if (countTemp < counterDown) {
+//
+//                        } else if (countTemp > counterDown) {
+                        if (down.steps > temp.steps) {
+                            System.out.println(" < ");
 
-							}
-						}
-						// node in fringe has more steps
-						else if (temp.compareTo(down) == 1) {
-							if (current.history != ""
-									&& current.history.charAt(current.history
-											.length() - 1) == 'N') {
-								if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-									fringe.remove(temp);
-									fringe.add(down);
-								}
-							}else{
-								fringe.remove(temp);
-								fringe.add(down);
-							}
-						}
-					}
+                            if (current.history != "" && current.history.charAt(current.history.length() - 1) == 'N') {
+                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                    fringe.remove(temp);
+                                    fringe.add(down);
+                                }
+                            } else {
+                                fringe.remove(temp);
+                                fringe.add(down);
+                            }
+                        } //                        Node temp = findLowerNode(down, fringe);
+                        //                        if (down.food.size() == temp.food.size()) {
+                        //                            if (debug) {
+                        //                                System.out.println(" food equal ");
+                        //                                temp.info();
+                        //                            }
+                        ////                            if (current.history != "" && current.history.charAt(current.history.length() - 1) == 'N') {
+                        ////                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                        ////                                    fringe.remove(temp);
+                        ////                                    fringe.add(down);
+                        ////                                }
+                        ////                            } else {
+                        ////                                fringe.remove(temp);
+                        ////                                fringe.add(down);
+                        ////                            }
+                        //                        } 
+                        else if (down.steps == temp.steps) {
+                            
 
-				}
-			}
+                            if (current.history != ""
+                                    && current.history.charAt(current.history
+                                            .length() - 1) == 'N') {
+                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                    fringe.add(down);
+                                    if (debug) {
+                                        down.info();
+                                    }
+                                }
+                            } else {
+                                if (debug) {
+                                    down.info();
+                                }
+                                fringe.add(down);
+                            }
+                        }
+                    }
+                }
+            }
 
-			if (current.location.x + 1 <= lengthX) {
-				Node right = createNode(current.location.x + 1,
-						current.location.y, current, "E", grid);
-				if (right != null) {
-					if (!checkVisited(right, visited)
-							|| !checkFringe(right, fringe)) {
+            if (current.location.x + 1 <= lengthX) {
+                if (debug) {
+                    System.out.println("STEP right E");
+                }
+                Node right = createNode(current.location.x + 1,
+                        current.location.y, current, "E", grid);
+                if (right != null) {
+                    if (!checkVisited(right, visited) || !checkFringe(right, fringe)) {
 //						System.out.println("right node added to fringe");
-						if (current.history != ""
-								&& current.history.charAt(current.history
-										.length() - 1) == 'W') {
-							if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-//								right.info();
-								fringe.add(right);
-							}
-						}else{
-							fringe.add(right);
-						}
-					} else if (checkFringe(right, fringe)) {
-						// ignore path
-						System.out
-								.println("Not in visited, in fringe and right cost greater than current");
-						// temp is the node in the fringe that were comparing
-						Node temp = findLowerNode(right, fringe);
-//						temp.info();
-						// if they have the same num of step
-						if (temp.compareTo(right) == 0) {
-							if (temp.food.size() == right.food.size()) {
-//								System.out
-//										.println("Same steps and food size. keep both");
-								if (current.history != ""
-										&& current.history
-												.charAt(current.history
-														.length() - 1) == 'W') {
-									if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-//										right.info();
-										fringe.add(right);
-									}
-								}else{
-									fringe.add(right);
-								}
-							} else if (temp.food.size() < right.food.size()) {
-//								System.out
-//										.println("right has more pellets and same steps. replace with right");
-								if (current.history != ""
-										&& current.history
-												.charAt(current.history
-														.length() - 1) == 'W') {
-									if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-										fringe.remove(temp);
-										fringe.add(right);
-									}
-								}else{
-									fringe.remove(temp);
-									fringe.add(right);
-								}
+                        if (current.history != ""
+                                && current.history.charAt(current.history
+                                        .length() - 1) == 'W') {
+                            if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                if (debug) {
+                                    right.info();
+                                }
+                                fringe.add(right);
+                            }
+                        } else {
+                            fringe.add(right);
+                            if (debug) {
+                                right.info();
+                            }
+                        }
+                    } else if (checkFringe(right, fringe)) {
 
-							}
-						}
-						// node in fringe has more steps
-						else if (temp.compareTo(right) == 1) {
-							if (current.history != ""
-									&& current.history.charAt(current.history
-											.length() - 1) == 'W') {
-								if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-									fringe.remove(temp);
-									fringe.add(right);
-								}
-							}else{
-								fringe.remove(temp);
-								fringe.add(right);
-							}
-						}
-					}
+                        Node temp = findLowerNode(right, fringe);
+//                        int counterRight = numOfOccurance(right);
+//                        int countTemp = numOfOccurance(temp);
+//                        if (countTemp < counterRight) {
+//
+//                        } else if (countTemp > counterRight && right.food.size() > temp.f) {
+                        if (right.steps > temp.steps) {
+                            System.out.println(" < ");
 
-				}
-			}
+                            if (current.history != "" && current.history.charAt(current.history.length() - 1) == 'W') {
+                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                    fringe.remove(temp);
+                                    fringe.add(right);
+                                }
+                            } else {
+                                fringe.remove(temp);
+                                fringe.add(right);
+                            }
+                        } //                        if (right.food.size() == temp.food.size()) {
+                        //                            if (debug) {
+                        //                                System.out.println(" food equal ");
+                        //                                temp.info();
+                        //                            }
+                        ////                            if (current.history != "" && current.history.charAt(current.history.length() - 1) == 'W') {
+                        ////                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                        ////                                    fringe.remove(temp);
+                        ////                                    fringe.add(right);
+                        ////                                }
+                        ////                            } else {
+                        ////                                fringe.remove(temp);
+                        ////                                fringe.add(right);
+                        ////                            }
+                        else if (right.steps == temp.steps) {
+                            
 
-			if (current.location.x - 1 >= 0) {
-				Node left = createNode(current.location.x - 1,
-						current.location.y, current, "W", grid);
-				if (left != null) {
-					if (!checkVisited(left, visited)
-							|| !checkFringe(left, fringe)) {
+                            if (current.history != ""
+                                    && current.history.charAt(current.history
+                                            .length() - 1) == 'W') {
+                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                    if (debug) {
+                                        right.info();
+                                    }
+                                    fringe.add(right);
+                                }
+                            } else {
+                                fringe.add(right);
+                                if (debug) {
+                                    right.info();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (current.location.x - 1 >= 0) {
+                if (debug) {
+                    System.out.println("step left W");
+                }
+                Node left = createNode(current.location.x - 1,
+                        current.location.y, current, "W", grid);
+                if (left != null) {
+                    if (!checkVisited(left, visited) || !checkFringe(left, fringe)) {
 //						System.out.println("left node added to fringe");
-						if (current.history != ""
-								&& current.history.charAt(current.history
-										.length() - 1) == 'E') {
-							if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-//								left.info();
-								fringe.add(left);
-							}
-						}else{
-							fringe.add(left);
-						}
-					} else if (checkFringe(left, fringe)) {
-						// ignore path
-//						System.out
-//								.println("Not in visited, in fringe and left cost greater than current");
-						// temp is the node in the fringe that were comparing
-						Node temp = findLowerNode(left, fringe);
-//						temp.info();
-						// if they have the same num of step
-						if (temp.compareTo(left) == 0) {
-							if (temp.food.size() == left.food.size()) {
-//								System.out
-//										.println("Same steps and food size. keep both");
-								if (current.history != ""
-										&& current.history
-												.charAt(current.history
-														.length() - 1) == 'E') {
-									if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-//										left.info();
-										fringe.add(left);
-									}
-								}else{
-									fringe.add(left);
-								}
-							} else if (temp.food.size() < left.food.size()) {
-//								System.out
-//										.println("left has more pellets and same steps. replace with left");
-								fringe.remove(temp);
-								if (current.history != ""
-										&& current.history
-												.charAt(current.history
-														.length() - 1) == 'E') {
-									if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-//										left.info();
-										fringe.remove(temp);
+                        if (current.history != ""
+                                && current.history.charAt(current.history
+                                        .length() - 1) == 'E') {
+                            if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                if (debug) {
+                                    left.info();
+                                }
+                                fringe.add(left);
+                            }
+                        } else {
+                            if (debug) {
+                                left.info();
+                            }
+                            fringe.add(left);
+                        }
+                    } else if (checkFringe(left, fringe)) {
 
-										fringe.add(left);
-									}
-								}else{
-									fringe.remove(temp);
-									fringe.add(left);
-								}
+                        Node temp = findLowerNode(left, fringe);
+//                        int counterLeft = numOfOccurance(left);
+//                        int countTemp = numOfOccurance(temp);
+//                        if (countTemp < counterLeft) {
+//
+//                        } else if (countTemp > counterLeft) {
+                        if (left.steps > temp.steps) {
+                            System.out.println(" < ");
 
-							}
-						}
-						// node in fringe has more steps
-						else if (temp.compareTo(left) == 1) {
-							if (current.history != ""
-									&& current.history.charAt(current.history
-											.length() - 1) == 'E') {
-								if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-									left.info();
-									fringe.remove(temp);
+                            if (current.history != "" && current.history.charAt(current.history.length() - 1) == 'E') {
+                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                    fringe.remove(temp);
+                                    fringe.add(left);
+                                }
+                            } else {
+                                fringe.remove(temp);
+                                fringe.add(left);
+                            }
+                        } //                        if (left.food.size() == temp.food.size()) {
+                        //                            if (debug) {
+                        //                                System.out.println(" food equal ");
+                        //                                temp.info();
+                        //                            }
+                        ////                            if (current.history != "" && current.history.charAt(current.history.length() - 1) == 'E') {
+                        ////                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                        ////                                    fringe.remove(temp);
+                        ////                                    fringe.add(left);
+                        ////                                }
+                        ////                            } else {
+                        ////                                fringe.remove(temp);
+                        ////                                fringe.add(left);
+                        ////                            }
+                        //                        }
+                        else if (left.steps == temp.steps) {
+                            
 
-									fringe.add(left);
-								}
-							}else{
-								fringe.remove(temp);
-								fringe.add(left);
-							}
-						}
-					}
+                            if (current.history != ""
+                                    && current.history.charAt(current.history
+                                            .length() - 1) == 'E') {
+                                if (grid[current.location.x][current.location.y] instanceof FoodCell) {
+                                    if (debug) {
+                                        left.info();
+                                    }
+                                    fringe.add(left);
+                                }
+                            } else {
+                                if (debug) {
+                                    left.info();
+                                }
+                                fringe.add(left);
+                            }
+                        }
+                    }
 
-				}
-			}
+                }
+            }
 
-		}
-		if (fringe.isEmpty())
-			System.out.println("fringe is empty");
-		return "";
-	}
+        }
+        if (fringe.isEmpty()) {
+            System.out.println("fringe is empty");
+        }
+        return "";
+    }
 
-	/**
-	 * finds matching node within fringe
-	 */
-	public Node findLowerNode(Node current, PriorityQueue fringe) {
+    public int numOfOccurance(Node temp) {
+        int tempCounter = 0;
+        for (Location n : temp.locationHistory) {
+            if (n.x == temp.location.x
+                    && n.y == temp.location.y) {
+                tempCounter++;
+            }
+        }
 
-		Object[] list = fringe.toArray();
-		if (list != null)
-			for (int i = 0; i < list.length; i++) {
-				Node n = (Node) list[i];
-				if (n.location.compareTo(current.location) == 0) {
-					return n;
+        return tempCounter;
+    }
 
-				}
-			}
-		return null;
-	}
+    /**
+     * finds matching node within fringe
+     */
+    public Node findLowerNode(Node current, PriorityQueue<Node> fringe) {
 
-	/**
-	 * adds a node to the set if it doesn't already exists based only on
-	 * location of node
-	 */
-	public void addToSet(ArrayList<Node> visited, Node node) {
-		boolean exists = false;
+//        Object[] list = fringe.toArray();
+//        if (list != null) {
+//            for (int i = 0; i < list.length; i++) {
+//                Node n = (Node) list[i];
+//                if (n.location.compareTo(current.location) == 0) {
+//                    return n;
+//
+//                }
+//            }
+//        }
+        for (Node n : fringe) {
+            if (n.location.compareTo(current.location) == 0) {
+//                System.out.println(n.location.x + " " + n.location.y);
+                return n;
 
-		for (Node n : visited) {
-			if (n.location.x == node.location.x
-					&& n.location.y == node.location.y)
-				return;
-		}
-		visited.add(node);
-	}
+            }
+        }
+        return null;
+    }
 
-	public void printFringe(PriorityQueue<Node> fringe) {
-		System.out.println("Nodes in fringe");
-		Object[] temp = fringe.toArray();
-		for (int i = 0; i < temp.length; i++) {
-			Node n = (Node) temp[i];
-			n.info();
-		}
-	}
+    /**
+     * adds a node to the set if it doesn't already exists based only on
+     * location of node
+     */
+    public void addToSet(ArrayList<Node> visited, Node node) {
+        boolean exists = false;
 
-	public void printVisited(Set<Node> visited) {
-		System.out.println("Nodes in visited");
-		for (Node n : visited) {
-			n.info();
-		}
+        for (Node n : visited) {
+            if (n.location.x == node.location.x
+                    && n.location.y == node.location.y) {
+                return;
+            }
+        }
+        visited.add(node);
+    }
 
-	}
+    public void printFringe(PriorityQueue<Node> fringe) {
+        // System.out.println("Nodes in fringe");
+        Object[] temp = fringe.toArray();
+        for (int i = 0; i < temp.length; i++) {
+            Node n = (Node) temp[i];
+            n.info();
+        }
+    }
 
-	public boolean isGoal(Node current, int i) {
-		if (current.food.size() == i)
-			return true;
-		return false;
-	}
+    public void printVisited(Set<Node> visited) {
+        // System.out.println("Nodes in visited");
+        for (Node n : visited) {
+            n.info();
+        }
 
-	/**
-	 * creates a new node. updates steps, history, historylocations and checks
-	 * if location is a pellet
-	 */
-	public Node createNode(int x, int y, Node previous, String direction,
-			PacCell[][] grid) {
+    }
 
-		Node node = new Node(x, y, previous.steps);
-		for (Location temp : previous.locationHistory) {
-			node.locationHistory.add(new Location(temp.x, temp.y));
-		}
-		node.addToHistory(previous.history + direction, x, y);
+    public boolean isGoal(Node current, int i) {
+        if (current.food.size() == i) {
+            return true;
+        }
+        return false;
+    }
 
-		for (Location temp : previous.food) {
-			node.food.add(new Location(temp.x, temp.y));
-		}
+    /**
+     * creates a new node. updates steps, history, historylocations and checks
+     * if location is a pellet
+     */
+    public Node createNode(int x, int y, Node previous, String direction,
+            PacCell[][] grid) {
+        int index = 0;
+        Node node = new Node(x, y, previous.steps);
+        for (Location temp : previous.locationHistory) {
+            node.locationHistory.add(new Location(temp.x, temp.y));
+        }
+        node.addToHistory(previous.history + direction, x, y);
 
-		// check for wall
-		if (!(grid[x][y] instanceof WallCell)) {
-			// check for food
-			if (grid[x][y] instanceof FoodCell) {
-				node.food.add(node.location);
-				if (node.food.isEmpty())
-					System.out.println("food is empty");
+        for (Location temp : previous.food) {
+            node.food.add(new Location(temp.x, temp.y));
+        }
 
-			}
-		} else
-			return null;
-		return node;
-	}
+        // check for wall
+        if (!(grid[x][y] instanceof WallCell)) {
+            // check for food
+            if (grid[x][y] instanceof FoodCell) {
+                node.food.add(node.location);
+                if (node.food.isEmpty()) {
+                    if (debug) {
+                        System.out.println("food is empty");
+                    }
+                }
 
-	/**
-	 * checks if a node exists within the fringe
-	 */
-	public boolean checkFringe(Node current, PriorityQueue<Node> fringe) {
-		System.out.println("checking fringe");
-		if (fringe.isEmpty()) {
-			System.out.println("fringe is empty");
-			return false;
-		}
+            }
+        } else {
+            return null;
+        }
 
-		Object[] list = fringe.toArray();
-		Node n;
+        for (int i = 0; i < node.locationHistory.size(); i++) {
+            if (node.locationHistory.get(i).x == previous.location.x
+                    && node.locationHistory.get(i).y == previous.location.y) {
+                i++;
+                if (i < node.locationHistory.size() && (node.locationHistory.get(i).x == x
+                        && node.locationHistory.get(i).y == y)) {
+                    index++;
 
-		for (int i = 0; i < list.length; i++) {
-			n = (Node) list[i];
-			if (n.location.x == current.location.x
-					&& n.location.y == current.location.y) {
-				System.out.println("matching location found in fringe");
-				return true;
-			}
-		}
-		System.out.println("not in fringe");
-		return false;
-	}
+                }
+            }
+        }
+        if (index >= 2) {
+            if (debug) {
+                System.out.println("SUBPATH");
+            }
+            return null;
+        }
+        return node;
+    }
 
-	/**
-	 * checks if a node exists within visited
-	 */
-	public boolean checkVisited(Node current, ArrayList<Node> visited) {
-		System.out.println("checking visited");
-		for (Node n : visited) {
-			if (n.location.x == current.location.x
-					&& n.location.y == current.location.y) {
-				System.out.println("Found match in visited");
-				return true;
-			}
-		}
+    /**
+     * checks if a node exists within the fringe
+     */
+    public boolean checkFringe(Node current, PriorityQueue<Node> fringe) {
+        if (debug) {
+            System.out.println("checking fringe");
+        }
+        if (fringe.isEmpty()) {
+            if (debug) {
+                System.out.println("fringe is empty");
+            }
+            return false;
+        }
 
-		System.out.println("not in visited");
-		return false;
-	}
+        Object[] list = fringe.toArray();
+        Node n;
 
-	/**
-	 * this class will be on the fringe. it keeps track of the steps taken on
-	 * each possible path. Also tracks how many pellets have been eaten
-	 * 
-	 * updated node based on changes we talked about
-	 */
-	class Node implements Comparable<Node> {
-		int steps;
-		Location location;
-		Set<Location> food;
-		String history;
-		ArrayList<Location> locationHistory;
+        for (int i = 0; i < list.length; i++) {
+            n = (Node) list[i];
+            if (n.location.x == current.location.x
+                    && n.location.y == current.location.y) {
+                if (debug) {
+                    System.out.println("matching location found in fringe");
+                }
+                return true;
+            }
+        }
+        if (debug) {
+            System.out.println("not in fringe");
+        }
+        return false;
+    }
 
-		public Node(int x, int y, int steps) {
-			this.steps = steps + 1;
-			this.location = new Location(x, y);
-			this.food = new TreeSet<Location>();
-			this.history = "";
-			this.locationHistory = new ArrayList<Location>();
+    /**
+     * checks if a node exists within visited
+     */
+    public boolean checkVisited(Node current, ArrayList<Node> visited) {
+        if (debug) {
+            System.out.println("checking visited");
+        }
+        for (Node n : visited) {
+            if (n.location.x == current.location.x
+                    && n.location.y == current.location.y) {
+                if (debug) {
+                    System.out.println("Found match in visited");
+                }
+                return true;
+            }
+        }
+        if (debug) {
+            System.out.println("not in visited");
+        }
+        return false;
+    }
 
-		}
+    /**
+     * this class will be on the fringe. it keeps track of the steps taken on
+     * each possible path. Also tracks how many pellets have been eaten
+     *
+     * updated node based on changes we talked about
+     */
+    class Node implements Comparable<Node> {
 
-		public void addToHistory(String s, int x, int y) {
-			this.locationHistory.add(new Location(x, y));
-			this.history = s;
-		}
+        int steps;
+        Location location;
+        Set<Location> food;
+        String history;
+        ArrayList<Location> locationHistory;
 
-		@Override
-		public int compareTo(Node other) {
-			// if at the same location
-			if (this.steps == other.steps)
-				return 0;
-			if (this.steps < other.steps)
-				return -1;
-			else
-				return 1;
+        public Node(int x, int y, int steps) {
+            this.steps = steps + 1;
+            this.location = new Location(x, y);
+            this.food = new TreeSet<Location>();
+            this.history = "";
+            this.locationHistory = new ArrayList<Location>();
 
-		}
+        }
 
-		public void info() {
-			System.out.println("x:" + this.location.x + " y:" + this.location.y
-					+ " steps:" + this.steps + " food size:" + this.food.size()
-					+ " history:" + this.history);
-			for (Location x : this.locationHistory) {
-				System.out.print("(" + x.x + "," + x.y + ") ");
-			}
-			System.out.println();
-		}
+        public void addToHistory(String s, int x, int y) {
+            this.locationHistory.add(new Location(x, y));
+            this.history = s;
+        }
 
-	}
+        @Override
+        public int compareTo(Node other) {
+            // if at the same location
+            if (this.steps == other.steps) {
+                return 0;
+            }
+            if (this.steps < other.steps) {
+                return -1;
+            } else {
+                return 1;
+            }
 
-	/**
-	 * class for storing position
-	 */
-	class Location implements Comparable<Location> {
-		int x;
-		int y;
+        }
 
-		public Location(int x, int y) {
-			this.x = x;
-			this.y = y;
-		}
+        public void info() {
+            System.out.println("x:" + this.location.x + " y:" + this.location.y
+                    + " steps:" + this.steps + " food size:" + this.food.size()
+                    + " history:" + this.history);
+            for (Location x : this.locationHistory) {
+                System.out.print("(" + x.x + "," + x.y + ") ");
+            }
+            System.out.println();
+        }
 
-		public void set(int x, int y) {
-			this.x = x;
-			this.y = y;
-		}
+    }
 
-		@Override
-		public int compareTo(Location other) {
-			if (this.x == other.x && this.y == other.y)
-				return 0;
-			return -1;
-		}
-	}
+    /**
+     * class for storing position
+     */
+    class Location implements Comparable<Location> {
+
+        int x;
+        int y;
+
+        public Location(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        public void set(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        @Override
+        public int compareTo(Location other) {
+            if (this.x == other.x && this.y == other.y) {
+                return 0;
+            }
+            return -1;
+        }
+    }
 }
-
-// // step up
-// if (current.location.y - 1 >= 0) {// check if step is within bounds
-// System.out.println("in step up");
-// Node up = createNode(current.location.x,
-// current.location.y - 1, current, "N", grid);
-//
-// if (up != null) {
-// // if(!visited.contains(up) || !fringe.contains(up)){
-// if (!checkVisited(up, visited) && !checkFringe(up, fringe)) {
-// if (current.history != ""
-// && current.history.charAt(current.history
-// .length() - 1) == 'S') {
-// // only add if current was a food cell
-// if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-// up.info();
-// fringe.add(up);
-// }
-// } else {
-// up.info();
-// fringe.add(up);
-// }
-//
-// } else if (checkFringe(up, fringe)) {
-// System.out.println("in fringe");
-// int index = 0;
-// for (int i = 0; i < fringe.size(); i++) {
-// if (up.location.x == fringe.get(i).location.x
-// && up.location.y == fringe.get(i).location.y) {
-// System.out.println("Found a equal node");
-// System.out.println("node on fringe info");
-// fringe.get(i).info();
-// System.out.println("up info");
-// up.info();
-// if (fringe.get(i).steps < up.steps) {
-// System.out
-// .println("replaced node in fringe");
-// fringe.remove(i);
-// fringe.add(i, up);
-// up.info();
-// }
-// break;
-// }
-// }
-//
-// }
-// }
-// }
-//
-// // // step up
-// // if (current.location.y - 1 >= 0) {// check if step is within
-// // bounds
-// // System.out.println("in step up");
-// // Node up = createNode(current.location.x,
-// // current.location.y - 1, current, "N", grid);
-// //
-// // if (up != null) {
-// //
-// // // check fringe and visited
-// // if (!visited.contains(up) || !fringe.contains(up)) {
-// // // if step down and up
-// // if (current.history != "" &&
-// // current.history.charAt(current.history.length() - 1) == 'S') {
-// // // only add if current was a food cell
-// // if (grid[current.location.x][current.location.y] instanceof
-// // FoodCell) {
-// //
-// // up.info();
-// // fringe.add(up);
-// // } else {
-// // // dont add
-// // }
-// // } else {
-// // // add possible step
-// //
-// // up.info();
-// // fringe.add(up);
-// // }
-// // } else if (fringe.contains(up)){
-// //
-// // System.out.println("up is in fringe");
-// // for (int i = 0; i < fringe.size(); i++) {
-// // if (fringe.get(i).compareTo(up) == -1) {
-// // fringe.remove(i);
-// // i--;
-// // }
-// // }
-// //
-// // }
-// // }
-// // }
-//
-// // step up
-// if (current.location.y + 1 <= lengthY) {// check if step is within
-// // bounds
-// System.out.println("in step down");
-// Node down = createNode(current.location.x,
-// current.location.y + 1, current, "S", grid);
-//
-// if (down != null) {
-// // if(!visited.contains(up) || !fringe.contains(up)){
-// if (!checkVisited(down, visited)
-// && !checkFringe(down, fringe)) {
-// if (current.history != ""
-// && current.history.charAt(current.history
-// .length() - 1) == 'N') {
-// // only add if current was a food cell
-// if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-// down.info();
-// fringe.add(down);
-// }
-// } else {
-// down.info();
-// fringe.add(down);
-// }
-//
-// } else if (checkFringe(down, fringe)) {
-// System.out.println("in fringe");
-// int index = 0;
-// for (int i = 0; i < fringe.size(); i++) {
-// if (down.location.x == fringe.get(i).location.x
-// && down.location.y == fringe.get(i).location.y) {
-// System.out.println("Found a equal node");
-// System.out.println("node on fringe info");
-// fringe.get(i).info();
-// System.out.println("up info");
-// down.info();
-// if (fringe.get(i).steps < down.steps) {
-// System.out
-// .println("replaced node in fringe");
-// fringe.remove(i);
-// fringe.add(i, down);
-// down.info();
-// }
-// break;
-// }
-// }
-//
-// }
-// }
-// }
-//
-// // // step down
-// // if (current.location.y + 1 <= lengthY) {// check if step is
-// // within
-// // // bounds
-// // System.out.println("in step down");
-// // Node down = createNode(current.location.x,
-// // current.location.y + 1, current, "S", grid);
-// //
-// // if (down != null) {
-// // if (!visited.contains(down) || !fringe.contains(down)) {
-// // // if step down and up
-// // if (current.history != ""
-// // && current.history.charAt(current.history
-// // .length() - 1) == 'N') {
-// // // only add if current was a food cell
-// // if (grid[current.location.x][current.location.y] instanceof
-// // FoodCell) {
-// //
-// // down.info();
-// // fringe.add(down);
-// // } else {
-// // // dont add
-// // }
-// // } else {
-// // // add possible step
-// //
-// // down.info();
-// // fringe.add(down);
-// // }
-// //
-// // } else if (fringe.contains(down)) {
-// // System.out.println("down is in fringe");
-// // for (int i = 0; i < fringe.size(); i++) {
-// // if (fringe.get(i).compareTo(down) == -1) {
-// // fringe.remove(i);
-// // i--;
-// // }
-// // }
-// // }
-// // }
-// // }
-//
-// // step left
-// if (current.location.x - 1 >= 0) {// check if step is within
-// // bounds
-// System.out.println("in step left");
-// Node left = createNode(current.location.x - 1,
-// current.location.y, current, "W", grid);
-//
-// if (left != null) {
-// if (!visited.contains(left) || !fringe.contains(left)) {
-// // if step left and right
-// if (current.history != ""
-// && current.history.charAt(current.history
-// .length() - 1) == 'E') {
-// // only add if current was a food cell
-// if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-//
-// left.info();
-// fringe.add(left);
-// } else {
-// // dont add
-// }
-// } else {
-// // add possible step
-//
-// left.info();
-// fringe.add(left);
-// }
-//
-// } else if (fringe.contains(left)) {
-// System.out.println("left is in fringe");
-// for (int i = 0; i < fringe.size(); i++) {
-// if (fringe.get(i).compareTo(left) == -1) {
-// fringe.remove(i);
-// i--;
-// }
-// }
-// }
-// }
-// }
-//
-// // step right
-// //if (current.location.x + 1 <= lengthX) {// check if step is within
-// // // bounds
-// // System.out.println("in step right");
-// Node right = createNode(current.location.x + 1,
-// current.location.y, current, "E", grid);
-//
-// if (right != null) {
-// if (!visited.contains(right) || !fringe.contains(right)) {
-// // if step left and right
-// if (current.history != ""
-// && current.history.charAt(current.history
-// .length() - 1) == 'W') {
-// // only add if current was a food cell
-// if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-//
-// right.info();
-// fringe.add(right);
-// } else {
-// // dont add
-// }
-// } else {
-// // add possible step
-//
-// right.info();
-// fringe.add(right);
-// }
-//
-// } else if (fringe.contains(right)) {
-// System.out.println("right is in fringe");
-// for (int i = 0; i < fringe.size(); i++) {
-// if (fringe.get(i).compareTo(right) == -1) {
-// fringe.remove(i);
-// i--;
-// }
-// }
-// }
-// }
-// }
