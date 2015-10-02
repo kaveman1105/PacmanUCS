@@ -186,7 +186,7 @@ public class PacmanUCS implements PacAction {
 //
 //                        } else if (countTemp > counterUp) {
                         if (up.steps < temp.steps) {
-                            System.out.println(" < ");
+                            System.out.println(" > ");
                             if (current.history != "" && current.history.charAt(current.history.length() - 1) == 'S') {
                                 if (grid[current.location.x][current.location.y] instanceof FoodCell) {
                                     fringe.remove(temp);
@@ -213,7 +213,6 @@ public class PacmanUCS implements PacAction {
                         ////                            }
                         //                        } 
                         else if (up.steps == temp.steps) {
-                            System.out.println(" == ");
 
                             if (current.history != ""
                                     && current.history.charAt(current.history
@@ -269,7 +268,7 @@ public class PacmanUCS implements PacAction {
 //                        if (countTemp < counterDown) {
 //
 //                        } else if (countTemp > counterDown) {
-                        if (down.steps < temp.steps) {
+                        if (down.steps > temp.steps) {
                             System.out.println(" < ");
 
                             if (current.history != "" && current.history.charAt(current.history.length() - 1) == 'N') {
@@ -298,7 +297,7 @@ public class PacmanUCS implements PacAction {
                         ////                            }
                         //                        } 
                         else if (down.steps == temp.steps) {
-                            System.out.println(" == ");
+                            
 
                             if (current.history != ""
                                     && current.history.charAt(current.history
@@ -352,7 +351,7 @@ public class PacmanUCS implements PacAction {
 //                        if (countTemp < counterRight) {
 //
 //                        } else if (countTemp > counterRight && right.food.size() > temp.f) {
-                        if (right.steps < temp.steps) {
+                        if (right.steps > temp.steps) {
                             System.out.println(" < ");
 
                             if (current.history != "" && current.history.charAt(current.history.length() - 1) == 'W') {
@@ -379,7 +378,7 @@ public class PacmanUCS implements PacAction {
                         ////                                fringe.add(right);
                         ////                            }
                         else if (right.steps == temp.steps) {
-                            System.out.println(" == ");
+                            
 
                             if (current.history != ""
                                     && current.history.charAt(current.history
@@ -433,7 +432,7 @@ public class PacmanUCS implements PacAction {
 //                        if (countTemp < counterLeft) {
 //
 //                        } else if (countTemp > counterLeft) {
-                        if (left.steps < temp.steps) {
+                        if (left.steps > temp.steps) {
                             System.out.println(" < ");
 
                             if (current.history != "" && current.history.charAt(current.history.length() - 1) == 'E') {
@@ -461,7 +460,7 @@ public class PacmanUCS implements PacAction {
                         ////                            }
                         //                        }
                         else if (left.steps == temp.steps) {
-                            System.out.println(" ==");
+                            
 
                             if (current.history != ""
                                     && current.history.charAt(current.history
