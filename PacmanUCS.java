@@ -178,7 +178,7 @@ public class PacmanUCS implements PacAction {
 							}
 						}
 
-					} else if (checkFringe(up, fringe) && !checkVisited(current, visited) ) {
+					} else if (checkFringe(up, fringe)) {
 						Node temp = findLowerNode(up, fringe);
 
 						if (up.steps == temp.steps) {
@@ -230,7 +230,7 @@ public class PacmanUCS implements PacAction {
 							}
 							fringe.add(down);
 						}
-					} else if (checkFringe(down, fringe) && !visited.contains(current)) {
+					} else if (checkFringe(down, fringe)) {
 						Node temp = findLowerNode(down, fringe);
 
 						if (down.steps == temp.steps) {
@@ -279,7 +279,7 @@ public class PacmanUCS implements PacAction {
 								right.info();
 							}
 						}
-					} else if (checkFringe(right, fringe) && !visited.contains(current)) {
+					} else if (checkFringe(right, fringe)) {
 
 						Node temp = findLowerNode(right, fringe);
 
@@ -329,7 +329,7 @@ public class PacmanUCS implements PacAction {
 							}
 							fringe.add(left);
 						}
-					} else if (checkFringe(left, fringe) && !visited.contains(current)) {
+					} else if (checkFringe(left, fringe)) {
 
 						Node temp = findLowerNode(left, fringe);
 						if (left.steps == temp.steps) {
