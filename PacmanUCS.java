@@ -1,7 +1,8 @@
 /**
  *
  * @author Kevin Anderson
- * @author Andrea Castillo UCF CAP4630 Fall 2015
+ * @author Andrea Castillo 
+ * UCF CAP4630 Fall 2015
  *
  */
 import java.awt.Point;
@@ -180,20 +181,7 @@ public class PacmanUCS implements PacAction {
 					} else if (checkFringe(up, fringe)) {
 						Node temp = findLowerNode(up, fringe);
 
-						if (compareVisitedNodes(up, temp)) {
-
-							if (current.history != ""
-									&& current.history.charAt(current.history
-											.length() - 1) == 'S') {
-								if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-									fringe.remove(temp);
-									fringe.add(up);
-								}
-							} else {
-								fringe.remove(temp);
-								fringe.add(up);
-							}
-						} else if (up.steps == temp.steps) {
+						if (up.steps == temp.steps) {
 
 							if (current.history != ""
 									&& current.history.charAt(current.history
@@ -245,19 +233,7 @@ public class PacmanUCS implements PacAction {
 					} else if (checkFringe(down, fringe)) {
 						Node temp = findLowerNode(down, fringe);
 
-						if (compareVisitedNodes(down, temp)) {
-							if (current.history != ""
-									&& current.history.charAt(current.history
-											.length() - 1) == 'N') {
-								if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-									fringe.remove(temp);
-									fringe.add(down);
-								}
-							} else {
-								fringe.remove(temp);
-								fringe.add(down);
-							}
-						} else if (down.steps == temp.steps) {
+						if (down.steps == temp.steps) {
 
 							if (current.history != ""
 									&& current.history.charAt(current.history
@@ -307,20 +283,7 @@ public class PacmanUCS implements PacAction {
 
 						Node temp = findLowerNode(right, fringe);
 
-						if (compareVisitedNodes(right, temp)) {
-
-							if (current.history != ""
-									&& current.history.charAt(current.history
-											.length() - 1) == 'W') {
-								if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-									fringe.remove(temp);
-									fringe.add(right);
-								}
-							} else {
-								fringe.remove(temp);
-								fringe.add(right);
-							}
-						} else if (right.steps == temp.steps) {
+						if (right.steps == temp.steps) {
 
 							if (current.history != ""
 									&& current.history.charAt(current.history
@@ -369,19 +332,7 @@ public class PacmanUCS implements PacAction {
 					} else if (checkFringe(left, fringe)) {
 
 						Node temp = findLowerNode(left, fringe);
-						if (compareVisitedNodes(left, temp)) {
-							if (current.history != ""
-									&& current.history.charAt(current.history
-											.length() - 1) == 'E') {
-								if (grid[current.location.x][current.location.y] instanceof FoodCell) {
-									fringe.remove(temp);
-									fringe.add(left);
-								}
-							} else {
-								fringe.remove(temp);
-								fringe.add(left);
-							}
-						} else if (left.steps == temp.steps) {
+						if (left.steps == temp.steps) {
 							if (current.history != ""
 									&& current.history.charAt(current.history
 											.length() - 1) == 'E') {
@@ -410,23 +361,8 @@ public class PacmanUCS implements PacAction {
 		return "";
 	}
 
-	public boolean compareVisitedNodes(Node current, Node temp) {
-		if (current.reVisited < temp.reVisited)
-			return true;
-		else
-			return false;
-	}
 
-	public int numOfOccurance(Node temp) {
-		int tempCounter = 0;
-		for (Location n : temp.locationHistory) {
-			if (n.x == temp.location.x && n.y == temp.location.y) {
-				tempCounter++;
-			}
-		}
-
-		return tempCounter;
-	}
+	
 
 	/**
 	 * finds matching node within fringe
@@ -604,7 +540,7 @@ public class PacmanUCS implements PacAction {
 		Set<Location> food;
 		String history;
 		ArrayList<Location> locationHistory;
-		int reVisited;
+		
 
 		public Node(int x, int y, int steps) {
 			this.steps = steps + 1;
@@ -612,16 +548,11 @@ public class PacmanUCS implements PacAction {
 			this.food = new TreeSet<Location>();
 			this.history = "";
 			this.locationHistory = new ArrayList<Location>();
-			this.reVisited = 0;
+			
 
 		}
 
 		public void addToHistory(String s, int x, int y) {
-			if (!this.locationHistory.isEmpty()) {
-				if (this.locationHistory.contains(new Location(x, y)))
-					this.reVisited++;
-
-			}
 			this.locationHistory.add(new Location(x, y));
 			this.history = s;
 		}
